@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ material.titulo }} | LMS UPQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body{background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#172033}
+        .layout{display:flex;min-height:100vh}.sidebar{width:280px;background:linear-gradient(180deg,#063c78,#0b5cad);color:white;position:fixed;top:0;bottom:0;left:0;padding:24px 18px;display:flex;flex-direction:column}
+        .brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}.brand-icon{width:48px;height:48px;background:white;color:#0b5cad;border-radius:14px;display:grid;place-items:center;font-weight:800}
+        .nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}
+        .sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}.logout{color:white;text-decoration:none;font-weight:700}
+        .main{margin-left:280px;width:calc(100% - 280px)}.topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}.content{padding:30px}
+        .card-box{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+        .btn-primary{background:#0b5cad;border-color:#0b5cad}.btn-primary:hover{background:#063c78;border-color:#063c78}
+        .badge{border-radius:999px}.material-section{border-left:5px solid #0b5cad;background:white;border-radius:18px;box-shadow:0 12px 30px rgba(15,23,42,.06);padding:24px;margin-bottom:18px}
+        .resource-card{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);padding:22px}
+        .resource-image{max-width:100%;border-radius:16px;margin:12px 0}.resource-media{width:100%;margin:12px 0}
+        form{display:inline}
+        @media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}}
+    </style>
+</head>
+
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand"><div class="brand-icon"><i class="bi bi-person-workspace"></i></div><div><strong>LMS UPQ</strong><br><small>Profesor</small></div></div>
+        <nav>
+            <a class="nav-link" href="{{ url_for('profesor.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a class="nav-link" href="{{ url_for('profesor.clases') }}"><i class="bi bi-easel2 me-2"></i>Mis clases</a>
+            <a class="nav-link active" href="{{ url_for('profesor.materiales') }}"><i class="bi bi-journal-richtext me-2"></i>Materiales</a>
+            <a class="nav-link" href="{{ url_for('profesor.crear_material') }}"><i class="bi bi-plus-circle me-2"></i>Crear material</a>
+        </nav>
+        <div class="sidebar-footer"><p class="mb-1">{{ current_user.nombre_completo }}</p><small>{{ current_user.correo }}</small><br><a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar"><strong>{{ material.titulo }}</strong></header>
+
+        <section class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category in ['danger','error'] else category }} rounded-4 fw-bold">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-bold">{{ material.titulo }}</h1>
+                    <p class="text-muted mb-0">{{ material.clase.materia.nombre }} - Grupo {{ material.clase.nombre_grupo }}</p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a class="btn btn-outline-primary rounded-pill px-4" href="{{ url_for('profesor.editar_material', material_id=material.id) }}">
+                        <i class="bi bi-pencil-square me-1"></i>Editar
+                    </a>
+                    <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ url_for('profesor.materiales') }}">Volver</a>
+                </div>
+            </div>
+
+            <div class="card card-box p-4 mb-4">
+                <p><strong>Estado:</strong>
+                    {% if material.estado == "PUBLICADO" %}
+                        <span class="badge text-bg-success">Publicado</span>
+                    {% elif material.estado == "BORRADOR" %}
+                        <span class="badge text-bg-warning">Borrador</span>
+                    {% else %}
+                        <span class="badge text-bg-danger">Archivado</span>
+                    {% endif %}
+                </p>
+
+                <p><strong>Alcance:</strong> {{ "Toda la clase" if material.alcance == "TODA_LA_CLASE" else "Alumnos seleccionados" }}</p>
+                <p><strong>Descarga:</strong> {{ "Permitida" if material.permite_descarga else "No permitida" }}</p>
+
+                {% if material.descripcion_corta %}
+                    <p><strong>Descripción:</strong> {{ material.descripcion_corta }}</p>
+                {% endif %}
+
+                {% if material.fecha_publicacion %}
+                    <p class="mb-0"><strong>Fecha de publicación:</strong> {{ material.fecha_publicacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap mb-4">
+                {% if material.estado != "PUBLICADO" %}
+                    <form method="post" action="{{ url_for('profesor.publicar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas publicar este material?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-success rounded-pill px-4" type="submit"><i class="bi bi-cloud-check me-1"></i>Publicar</button>
+                    </form>
+                {% endif %}
+
+                {% if material.estado != "ARCHIVADO" %}
+                    <form method="post" action="{{ url_for('profesor.archivar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas archivar este material?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-outline-danger rounded-pill px-4" type="submit"><i class="bi bi-archive me-1"></i>Archivar</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            {% for label, value in [
+                ("Introducción", material.introduccion),
+                ("Objetivo", material.objetivo),
+                ("Metodología de trabajo", material.metodologia_trabajo),
+                ("Detalles del material", material.detalles_material),
+                ("Referencias bibliográficas", material.referencias_bibliograficas),
+                ("Conclusión del material", material.conclusion)
+            ] %}
+                <section class="material-section">
+                    <h4 class="fw-bold">{{ label }}</h4>
+                    <p class="mb-0">{{ value }}</p>
+                </section>
+            {% endfor %}
+
+            <h3 class="fw-bold mt-4 mb-3">Recursos del material</h3>
+
+            {% if material.recursos %}
+                <div class="row g-4">
+                    {% for recurso in material.recursos %}
+                        <div class="col-lg-6">
+                            <article class="resource-card">
+                                <h5 class="fw-bold">{{ recurso.nombre_original }}</h5>
+                                <p><strong>Tipo:</strong> {{ recurso.tipo }}</p>
+
+                                {% if recurso.descripcion %}
+                                    <p>{{ recurso.descripcion }}</p>
+                                {% endif %}
+
+                                {% if recurso.tipo == "ENLACE" %}
+                                    <a href="{{ recurso.ubicacion }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill">
+                                        Abrir enlace
+                                    </a>
+                                {% else %}
+                                    {% set archivo_url = url_for('profesor.archivo', filename=recurso.ubicacion) %}
+
+                                    {% if recurso.tipo == "IMAGEN" %}
+                                        <img src="{{ archivo_url }}" alt="{{ recurso.texto_alternativo or recurso.nombre_original }}" class="resource-image">
+                                    {% elif recurso.tipo == "VIDEO" %}
+                                        <video controls class="resource-media">
+                                            <source src="{{ archivo_url }}" type="{{ recurso.mime_type or 'video/mp4' }}">
+                                        </video>
+                                    {% elif recurso.tipo == "AUDIO" %}
+                                        <audio controls class="resource-media">
+                                            <source src="{{ archivo_url }}" type="{{ recurso.mime_type or 'audio/mpeg' }}">
+                                        </audio>
+                                    {% endif %}
+
+                                    <a href="{{ archivo_url }}" target="_blank" class="btn btn-outline-primary rounded-pill">
+                                        Abrir recurso
+                                    </a>
+                                {% endif %}
+                            </article>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card card-box p-4">
+                    <p class="mb-0 text-muted">Este material todavía no tiene recursos adjuntos.</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+</body>
+</html>

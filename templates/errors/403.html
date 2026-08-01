@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+Acceso denegado | LMS UPQ
+{% endblock %}
+
+{% block content %}
+
+<section class="section-head">
+    <h1>Acceso denegado</h1>
+    <p>No tienes permisos para acceder a esta sección.</p>
+</section>
+
+<section class="form-card">
+    <p>
+        Esta página está protegida por permisos de usuario. Verifica que hayas
+        iniciado sesión con el rol correcto.
+    </p>
+
+    <div class="form-actions">
+        <a href="{{ url_for('bienvenida') }}" class="button">
+            Volver al inicio
+        </a>
+
+        <a href="{{ url_for('auth.logout') }}" class="button secondary">
+            Cerrar sesión
+        </a>
+    </div>
+</section>
+
+{% endblock %}

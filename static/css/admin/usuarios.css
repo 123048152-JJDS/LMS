@@ -1,0 +1,13 @@
+.usuario-name {
+    font-weight: 800;
+    color: var(--admin-text);
+}
+
+.usuario-email {
+    color: var(--admin-muted);
+    font-size: 14px;
+}
+
+.actions form {
+    margin: 0;
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Asignar alumnos | LMS UPQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body{background:#f4f7fb;font-family:Arial,Helvetica,sans-serif}.layout{display:flex;min-height:100vh}.sidebar{width:280px;background:linear-gradient(180deg,#063c78,#0b5cad);color:white;position:fixed;top:0;bottom:0;left:0;padding:24px 18px;display:flex;flex-direction:column}.brand{display:flex;gap:12px;align-items:center;margin-bottom:30px}.brand-icon{width:48px;height:48px;background:white;color:#0b5cad;border-radius:14px;display:grid;place-items:center;font-weight:800}.nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}.sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}.logout{color:white;text-decoration:none;font-weight:700}.main{margin-left:280px;width:calc(100% - 280px)}.topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}.content{padding:30px}.form-card{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);padding:28px;max-width:900px}.check-card{border:1px solid #dce6f3;border-radius:14px;padding:14px;margin-bottom:10px;background:#f8fafc}.btn-primary{background:#0b5cad;border-color:#0b5cad}@media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}}
+    </style>
+</head>
+
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand"><div class="brand-icon">LMS</div><div><strong>UPQ</strong><br><small>Administración</small></div></div>
+        <nav>
+            <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='alumnos') }}"><i class="bi bi-mortarboard me-2"></i>Alumnos</a>
+            <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='profesores') }}"><i class="bi bi-person-workspace me-2"></i>Profesores</a>
+            <a class="nav-link" href="{{ url_for('admin.materias') }}"><i class="bi bi-journal-bookmark me-2"></i>Materias</a>
+            <a class="nav-link active" href="{{ url_for('admin.clases') }}"><i class="bi bi-easel2 me-2"></i>Clases</a>
+        </nav>
+        <div class="sidebar-footer"><p class="mb-1">{{ current_user.nombre_completo }}</p><small>{{ current_user.correo }}</small><br><a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar"><strong>Asignar alumnos</strong></header>
+
+        <section class="content">
+            <h1 class="fw-bold">Asignar alumnos</h1>
+            <p class="text-muted">{{ clase.materia.nombre }} - {{ clase.nombre_grupo }}</p>
+
+            <form method="post" class="form-card">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-3 d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-primary rounded-pill" id="seleccionarTodos">Seleccionar todos</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" id="limpiarSeleccion">Limpiar selección</button>
+                    <input id="buscarAlumno" class="form-control rounded-pill" style="max-width:300px" placeholder="Buscar alumno...">
+                </div>
+
+                <div id="listaAlumnos">
+                    {% for alumno in alumnos %}
+                        <label class="check-card d-flex align-items-center gap-3 alumno-item">
+                            <input class="form-check-input" type="checkbox" name="alumnos" value="{{ alumno.id }}" {% if alumno.id in alumnos_asignados %}checked{% endif %}>
+                            <span>
+                                <strong>{{ alumno.usuario.nombre_completo }}</strong><br>
+                                <small class="text-muted">{{ alumno.matricula }} | {{ alumno.carrera.nombre }} | {{ alumno.cuatrimestre }}°</small>
+                            </span>
+                        </label>
+                    {% else %}
+                        <p class="text-muted">No hay alumnos activos registrados.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary rounded-pill px-4" type="submit">Guardar inscripciones</button>
+                    <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ url_for('admin.clases') }}">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+
+<script>
+    document.getElementById("seleccionarTodos").onclick = () => document.querySelectorAll("[name='alumnos']").forEach(c => c.checked = true);
+    document.getElementById("limpiarSeleccion").onclick = () => document.querySelectorAll("[name='alumnos']").forEach(c => c.checked = false);
+
+    document.getElementById("buscarAlumno").addEventListener("input", function(){
+        const value = this.value.toLowerCase();
+        document.querySelectorAll(".alumno-item").forEach(item => {
+            item.style.display = item.textContent.toLowerCase().includes(value) ? "flex" : "none";
+        });
+    });
+</script>
+</body>
+</html>

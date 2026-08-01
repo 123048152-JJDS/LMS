@@ -1,0 +1,4 @@
+.table-wrap td:first-child {
+    font-weight: 800;
+    color: var(--admin-primary);
+}

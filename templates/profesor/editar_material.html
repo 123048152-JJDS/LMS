@@ -1,0 +1,228 @@
+{% set alumnos_seleccionados = material.alumnos_asignados|map(attribute='alumno_id')|list %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar material | LMS UPQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body{background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#172033}
+        .layout{display:flex;min-height:100vh}.sidebar{width:280px;background:linear-gradient(180deg,#063c78,#0b5cad);color:white;position:fixed;top:0;bottom:0;left:0;padding:24px 18px;display:flex;flex-direction:column}
+        .brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}.brand-icon{width:48px;height:48px;background:white;color:#0b5cad;border-radius:14px;display:grid;place-items:center;font-weight:800}
+        .nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}
+        .sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}.logout{color:white;text-decoration:none;font-weight:700}
+        .main{margin-left:280px;width:calc(100% - 280px)}.topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}.content{padding:30px}
+        .form-card{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);padding:28px}
+        .form-control,.form-select{border-radius:12px;padding:12px}.btn-primary{background:#0b5cad;border-color:#0b5cad}.btn-primary:hover{background:#063c78;border-color:#063c78}
+        .usk-section{border-left:5px solid #0b5cad;background:#f8fafc;border-radius:16px;padding:18px}
+        .student-box{background:#f8fafc;border:1px solid #dce6f3;border-radius:14px;padding:12px;margin-bottom:8px}
+        .resource-current{border:1px solid #dce6f3;border-radius:14px;background:#f8fafc;padding:12px}
+        .preview-section{border-bottom:1px solid #e5edf7;padding-bottom:14px;margin-bottom:14px}
+        @media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}}
+    </style>
+</head>
+
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand"><div class="brand-icon"><i class="bi bi-person-workspace"></i></div><div><strong>LMS UPQ</strong><br><small>Profesor</small></div></div>
+        <nav>
+            <a class="nav-link" href="{{ url_for('profesor.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a class="nav-link" href="{{ url_for('profesor.clases') }}"><i class="bi bi-easel2 me-2"></i>Mis clases</a>
+            <a class="nav-link active" href="{{ url_for('profesor.materiales') }}"><i class="bi bi-journal-richtext me-2"></i>Materiales</a>
+            <a class="nav-link" href="{{ url_for('profesor.crear_material') }}"><i class="bi bi-plus-circle me-2"></i>Crear material</a>
+        </nav>
+        <div class="sidebar-footer"><p class="mb-1">{{ current_user.nombre_completo }}</p><small>{{ current_user.correo }}</small><br><a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar"><strong>Editar material</strong></header>
+
+        <section class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category in ['danger','error'] else category }} rounded-4 fw-bold">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <div class="mb-4">
+                <h1 class="fw-bold">Editar material educativo</h1>
+                <p class="text-muted">Modifica el contenido estructurado con metodología Uskov.</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="form-card">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Clase</label>
+                        <select class="form-select" name="clase_id" required>
+                            <option value="">Selecciona una clase</option>
+                            {% for clase in clases %}
+                                <option value="{{ clase.id }}" {% if material.clase_id == clase.id %}selected{% endif %}>
+                                    {{ clase.materia.nombre }} - {{ clase.nombre_grupo }} - {{ clase.periodo.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Título</label>
+                        <input class="form-control" name="titulo" value="{{ material.titulo or '' }}" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Descripción corta</label>
+                        <textarea class="form-control" name="descripcion_corta" rows="3">{{ material.descripcion_corta or '' }}</textarea>
+                    </div>
+                </div>
+
+                {% for label, name, rows in [
+                    ("Introducción", "introduccion", 5),
+                    ("Objetivo", "objetivo", 5),
+                    ("Metodología de trabajo", "metodologia_trabajo", 5),
+                    ("Detalles del material", "detalles_material", 6),
+                    ("Referencias bibliográficas", "referencias_bibliograficas", 5),
+                    ("Conclusión del material", "conclusion", 5)
+                ] %}
+                    <div class="usk-section mb-3">
+                        <label class="form-label fw-bold">{{ label }}</label>
+                        <textarea class="form-control" name="{{ name }}" rows="{{ rows }}" required>{{ material[name] if material[name] else '' }}</textarea>
+                    </div>
+                {% endfor %}
+
+                {% if material.portada_ruta %}
+                    <div class="resource-current mb-3">
+                        <strong>Portada actual:</strong> {{ material.portada_ruta }}
+                    </div>
+                {% endif %}
+
+                {% if material.recursos %}
+                    <div class="resource-current mb-3">
+                        <strong>Recursos actuales:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for recurso in material.recursos %}
+                                <li>{{ recurso.tipo }} - {{ recurso.nombre_original }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Cambiar portada</label>
+                        <input class="form-control" type="file" name="portada" accept=".jpg,.jpeg,.png,.webp">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Agregar nuevos recursos</label>
+                        <input class="form-control" type="file" name="recursos" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mp3,.wav,.doc,.docx,.ppt,.pptx">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Descripción de nuevos recursos</label>
+                        <textarea class="form-control" name="descripcion_recurso" rows="3"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Texto alternativo para imágenes nuevas</label>
+                        <input class="form-control" name="texto_alternativo">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Alcance</label>
+                        <select class="form-select" name="alcance" id="alcance">
+                            <option value="TODA_LA_CLASE" {% if material.alcance == "TODA_LA_CLASE" %}selected{% endif %}>Toda la clase</option>
+                            <option value="ALUMNOS_SELECCIONADOS" {% if material.alcance == "ALUMNOS_SELECCIONADOS" %}selected{% endif %}>Alumnos seleccionados</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="permite_descarga" id="permite_descarga" {% if material.permite_descarga %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="permite_descarga">Permitir descarga de archivos</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4" id="alumnosBox" hidden>
+                    <h5 class="fw-bold">Seleccionar alumnos</h5>
+
+                    {% if alumnos %}
+                        {% for alumno in alumnos %}
+                            <label class="student-box d-flex gap-3 align-items-center">
+                                <input class="form-check-input" type="checkbox" name="alumnos" value="{{ alumno.id }}" {% if alumno.id in alumnos_seleccionados %}checked{% endif %}>
+                                <span><strong>{{ alumno.usuario.nombre_completo }}</strong><br><small class="text-muted">{{ alumno.matricula }}</small></span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay alumnos activos inscritos en esta clase.</p>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" name="accion" value="borrador" class="btn btn-outline-primary rounded-pill px-4">Guardar borrador</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="previewButton">Vista previa</button>
+                    <button type="submit" name="accion" value="publicar" class="btn btn-primary rounded-pill px-4">Publicar</button>
+                    <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ url_for('profesor.detalle_material', material_id=material.id) }}">Cancelar</a>
+                </div>
+            </form>
+
+            <section class="form-card mt-4" id="preview" hidden></section>
+        </section>
+    </main>
+</div>
+
+<script>
+    const alcance = document.getElementById("alcance");
+    const alumnosBox = document.getElementById("alumnosBox");
+    const preview = document.getElementById("preview");
+
+    function actualizarAlumnos() {
+        alumnosBox.hidden = alcance.value !== "ALUMNOS_SELECCIONADOS";
+    }
+
+    function limpiar(texto) {
+        return String(texto || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;")
+            .replaceAll("\n", "<br>");
+    }
+
+    document.getElementById("previewButton").addEventListener("click", function () {
+        const titulo = document.querySelector("[name='titulo']").value || "Vista previa";
+        const campos = [
+            ["Introducción", "introduccion"],
+            ["Objetivo", "objetivo"],
+            ["Metodología de trabajo", "metodologia_trabajo"],
+            ["Detalles del material", "detalles_material"],
+            ["Referencias bibliográficas", "referencias_bibliograficas"],
+            ["Conclusión", "conclusion"]
+        ];
+
+        let html = `<h3 class="fw-bold mb-3">${limpiar(titulo)}</h3>`;
+
+        campos.forEach(([label, name]) => {
+            const value = document.querySelector(`[name='${name}']`).value;
+            html += `<div class="preview-section"><h5>${label}</h5><p>${limpiar(value || "Sin contenido")}</p></div>`;
+        });
+
+        preview.innerHTML = html;
+        preview.hidden = false;
+        preview.scrollIntoView({behavior:"smooth"});
+    });
+
+    alcance.addEventListener("change", actualizarAlumnos);
+    actualizarAlumnos();
+</script>
+</body>
+</html>

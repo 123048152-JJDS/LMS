@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: lms_upq_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 2983
+      MYSQL_DATABASE: lms_upq
+    ports:
+      - "3307:3306"
+    volumes:
+      - lms_mysql_data:/var/lib/mysql
+      - ./base_datos_lms_upq.sql:/docker-entrypoint-initdb.d/01_base_datos_lms_upq.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p2983"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    container_name: lms_upq_flask
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: clave-secreta-lms-upq-2026
+      DATABASE_URL: mysql+pymysql://root:2983@db:3306/lms_upq
+      MAX_CONTENT_LENGTH: 2147483648
+      UPLOAD_FOLDER: uploads/materiales
+      FLASK_ENV: development
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - lms_uploads:/app/uploads/materiales
+
+volumes:
+  lms_mysql_data:
+  lms_uploads:

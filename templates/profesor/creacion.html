@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear material | LMS UPQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --azul-principal: #0b5cad;
+            --azul-oscuro: #063c78;
+            --fondo: #f4f7fb;
+            --texto: #172033;
+            --borde: #dce6f3;
+            --sombra: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--fondo);
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--texto);
+            margin: 0;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--azul-oscuro), var(--azul-principal));
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            color: var(--azul-principal);
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 22px;
+        }
+
+        .nav-link {
+            color: white;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            font-size: 14px;
+            color: #d9ecff;
+        }
+
+        .logout {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .main {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+        }
+
+        .topbar {
+            height: 72px;
+            background: white;
+            border-bottom: 1px solid var(--borde);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-card {
+            background: white;
+            border: 0;
+            border-radius: 22px;
+            box-shadow: var(--sombra);
+            padding: 28px;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--borde);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--azul-principal);
+            box-shadow: 0 0 0 4px rgba(11, 92, 173, 0.12);
+        }
+
+        .btn-primary {
+            background: var(--azul-principal);
+            border-color: var(--azul-principal);
+        }
+
+        .btn-primary:hover {
+            background: var(--azul-oscuro);
+            border-color: var(--azul-oscuro);
+        }
+
+        .usk-section {
+            border-left: 5px solid var(--azul-principal);
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .student-box {
+            background: #f8fafc;
+            border: 1px solid var(--borde);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .preview-section {
+            border-bottom: 1px solid #e5edf7;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+
+        .resource-row {
+            background: #f8fafc;
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .counter {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .counter.ok {
+            color: #64748b;
+        }
+
+        .counter.bad {
+            color: #dc2626;
+        }
+
+        .small-help {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .file-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 10px 0 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .file-list li {
+            background: #eef6ff;
+            border: 1px solid #d8eafe;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #0b4f9c;
+            font-weight: 700;
+        }
+
+        .alert-client {
+            display: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .alert-client.show {
+            display: block;
+        }
+
+        @media(max-width: 900px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+            }
+
+            .layout {
+                display: block;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="bi bi-person-workspace"></i>
+            </div>
+
+            <div>
+                <strong>LMS UPQ</strong><br>
+                <small>Profesor</small>
+            </div>
+        </div>
+
+        <nav>
+            <a class="nav-link" href="{{ url_for('profesor.dashboard') }}">
+                <i class="bi bi-speedometer2 me-2"></i>
+                Dashboard
+            </a>
+
+            <a class="nav-link" href="{{ url_for('profesor.clases') }}">
+                <i class="bi bi-easel2 me-2"></i>
+                Mis clases
+            </a>
+
+            <a class="nav-link" href="{{ url_for('profesor.materiales') }}">
+                <i class="bi bi-journal-richtext me-2"></i>
+                Materiales
+            </a>
+
+            <a class="nav-link active" href="{{ url_for('profesor.crear_material') }}">
+                <i class="bi bi-plus-circle me-2"></i>
+                Crear material
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p class="mb-1">{{ current_user.nombre_completo }}</p>
+            <small>{{ current_user.correo }}</small><br>
+
+            <a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right me-1"></i>
+                Cerrar sesión
+            </a>
+        </div>
+
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <strong>Crear material</strong>
+        </header>
+
+        <section class="content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category in ['danger','error'] else category }} rounded-4 fw-bold">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <div id="clientAlert" class="alert alert-danger alert-client"></div>
+
+            <div class="mb-4">
+                <h1 class="fw-bold">Crear material educativo</h1>
+                <p class="text-muted">
+                    Completa la estructura obligatoria basada en la metodología Uskov.
+                </p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="form-card" id="materialForm">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Clase
+                        </label>
+
+                        <select class="form-select" name="clase_id" required>
+                            <option value="">Selecciona una clase</option>
+
+                            {% for clase in clases %}
+                                <option
+                                    value="{{ clase.id }}"
+                                    {% if material.clase_id == clase.id or request.args.get('clase_id', type=int) == clase.id %}selected{% endif %}
+                                >
+                                    {{ clase.materia.nombre }} - {{ clase.nombre_grupo }} - {{ clase.periodo.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Título
+                        </label>
+
+                        <input
+                            class="form-control"
+                            name="titulo"
+                            maxlength="200"
+                            value="{{ material.titulo or '' }}"
+                            required
+                        >
+
+                        <div class="small-help">
+                            Máximo 200 caracteres.
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">
+                            Descripción corta
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            name="descripcion_corta"
+                            id="descripcion_corta"
+                            maxlength="500"
+                            rows="3"
+                            placeholder="Resumen breve del material. Máximo 500 caracteres."
+                        >{{ material.descripcion_corta or '' }}</textarea>
+
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">
+                                Este campo es breve. El contenido largo debe ir en las secciones Uskov.
+                            </small>
+
+                            <small class="counter ok" id="descripcionCounter">
+                                0/500
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="usk-section mb-3">
+                    <label class="form-label fw-bold">
+                        Introducción
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="introduccion"
+                        rows="6"
+                        minlength="20"
+                        required
+                    >{{ material.introduccion or '' }}</textarea>
+
+                    <div class="small-help">
+                        Explica el contexto inicial del tema.
+                    </div>
+                </div>
+
+                <div class="usk-section mb-3">
+                    <label class="form-label fw-bold">
+                        Objetivo
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="objetivo"
+                        rows="5"
+                        minlength="20"
+                        required
+                    >{{ material.objetivo or '' }}</textarea>
+
+                    <div class="small-help">
+                        Describe qué debe lograr o comprender el alumno.
+                    </div>
+                </div>
+
+                <div class="usk-section mb-3">
+                    <label class="form-label fw-bold">
+                        Metodología de trabajo
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="metodologia_trabajo"
+                        rows="6"
+                        minlength="20"
+                        required
+                    >{{ material.metodologia_trabajo or '' }}</textarea>
+
+                    <div class="small-help">
+                        Indica cómo debe estudiar, resolver o trabajar el material.
+                    </div>
+                </div>
+
+                <div class="usk-section mb-3">
+                    <label class="form-label fw-bold">
+                        Detalles del material
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="detalles_material"
+                        rows="7"
+                        minlength="20"
+                        required
+                    >{{ material.detalles_material or '' }}</textarea>
+
+                    <div class="small-help">
+                        Coloca aquí el desarrollo principal del contenido.
+                    </div>
+                </div>
+
+                <div class="usk-section mb-3">
+                    <label class="form-label fw-bold">
+                        Referencias bibliográficas
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="referencias_bibliograficas"
+                        rows="5"
+                        minlength="10"
+                        required
+                    >{{ material.referencias_bibliograficas or '' }}</textarea>
+                </div>
+
+                <div class="usk-section mb-4">
+                    <label class="form-label fw-bold">
+                        Conclusión del material
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        name="conclusion"
+                        rows="5"
+                        minlength="20"
+                        required
+                    >{{ material.conclusion or '' }}</textarea>
+                </div>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Portada opcional
+                        </label>
+
+                        <input
+                            class="form-control"
+                            type="file"
+                            name="portada"
+                            id="portada"
+                            accept=".jpg,.jpeg,.png,.webp"
+                        >
+
+                        <div class="small-help">
+                            Formatos permitidos: JPG, PNG, WEBP.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Descripción general de recursos
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            name="descripcion_recurso"
+                            maxlength="500"
+                            rows="3"
+                            placeholder="Descripción general para los archivos adjuntos."
+                        ></textarea>
+
+                        <div class="small-help">
+                            Máximo 500 caracteres.
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">
+                            Texto alternativo para imágenes
+                        </label>
+
+                        <input
+                            class="form-control"
+                            name="texto_alternativo"
+                            maxlength="300"
+                            placeholder="Descripción breve para accesibilidad."
+                        >
+
+                        <div class="small-help">
+                            Máximo 300 caracteres.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mb-4">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Recursos multimedia
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Puedes agregar varios archivos. Todos se guardarán como recursos del material.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary rounded-pill"
+                            id="addResource"
+                        >
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Agregar otro recurso
+                        </button>
+                    </div>
+
+                    <div id="resourcesContainer">
+
+                        <div class="resource-row">
+                            <label class="form-label fw-bold">
+                                Archivo de recurso
+                            </label>
+
+                            <input
+                                class="form-control resource-input"
+                                type="file"
+                                name="recursos"
+                                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mp3,.wav,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                            >
+
+                            <div class="small-help">
+                                Formatos: PDF, imágenes, video, audio, Word, PowerPoint, Excel y TXT.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <ul id="selectedFiles" class="file-list"></ul>
+
+                </div>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Alcance
+                        </label>
+
+                        <select class="form-select" name="alcance" id="alcance">
+                            <option
+                                value="TODA_LA_CLASE"
+                                {% if material.alcance == "TODA_LA_CLASE" or not material.alcance %}selected{% endif %}
+                            >
+                                Toda la clase
+                            </option>
+
+                            <option
+                                value="ALUMNOS_SELECCIONADOS"
+                                {% if material.alcance == "ALUMNOS_SELECCIONADOS" %}selected{% endif %}
+                            >
+                                Alumnos seleccionados
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                name="permite_descarga"
+                                id="permite_descarga"
+                                {% if material.permite_descarga %}checked{% endif %}
+                            >
+
+                            <label class="form-check-label fw-bold" for="permite_descarga">
+                                Permitir descarga de archivos
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mb-4" id="alumnosBox" hidden>
+
+                    <h5 class="fw-bold">
+                        Seleccionar alumnos
+                    </h5>
+
+                    <p class="text-muted">
+                        Solo los alumnos seleccionados podrán ver el material.
+                    </p>
+
+                    {% if alumnos %}
+                        {% for alumno in alumnos %}
+                            <label class="student-box d-flex gap-3 align-items-center">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="alumnos"
+                                    value="{{ alumno.id }}"
+                                >
+
+                                <span>
+                                    <strong>{{ alumno.usuario.nombre_completo }}</strong><br>
+                                    <small class="text-muted">{{ alumno.matricula }}</small>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">
+                            Selecciona una clase y guarda el borrador para cargar alumnos inscritos.
+                        </p>
+                    {% endif %}
+
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="borrador"
+                        class="btn btn-outline-primary rounded-pill px-4"
+                    >
+                        <i class="bi bi-save me-1"></i>
+                        Guardar borrador
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary rounded-pill px-4"
+                        id="previewButton"
+                    >
+                        <i class="bi bi-eye me-1"></i>
+                        Vista previa
+                    </button>
+
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="publicar"
+                        class="btn btn-primary rounded-pill px-4"
+                    >
+                        <i class="bi bi-cloud-check me-1"></i>
+                        Publicar
+                    </button>
+
+                    <a
+                        class="btn btn-outline-secondary rounded-pill px-4"
+                        href="{{ url_for('profesor.materiales') }}"
+                    >
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+            <section class="form-card mt-4" id="preview" hidden></section>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+    const MAX_DESCRIPCION_CORTA = 500;
+    const MAX_TITULO = 200;
+    const MAX_DESCRIPCION_RECURSO = 500;
+    const MAX_TEXTO_ALT = 300;
+    const MAX_TOTAL_BYTES = 2147483648;
+
+    const ALLOWED_EXTENSIONS = [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "mp4",
+        "webm",
+        "mp3",
+        "wav",
+        "doc",
+        "docx",
+        "ppt",
+        "pptx",
+        "xls",
+        "xlsx",
+        "txt"
+    ];
+
+    const alcance = document.getElementById("alcance");
+    const alumnosBox = document.getElementById("alumnosBox");
+    const preview = document.getElementById("preview");
+    const form = document.getElementById("materialForm");
+    const clientAlert = document.getElementById("clientAlert");
+    const descripcionCorta = document.getElementById("descripcion_corta");
+    const descripcionCounter = document.getElementById("descripcionCounter");
+    const resourcesContainer = document.getElementById("resourcesContainer");
+    const selectedFiles = document.getElementById("selectedFiles");
+    const addResource = document.getElementById("addResource");
+
+    function mostrarError(mensaje) {
+        clientAlert.textContent = mensaje;
+        clientAlert.classList.add("show");
+        clientAlert.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function limpiarError() {
+        clientAlert.textContent = "";
+        clientAlert.classList.remove("show");
+    }
+
+    function actualizarAlumnos() {
+        alumnosBox.hidden = alcance.value !== "ALUMNOS_SELECCIONADOS";
+    }
+
+    function limpiar(texto) {
+        return String(texto || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;")
+            .replaceAll("\n", "<br>");
+    }
+
+    function extensionArchivo(nombre) {
+        if (!nombre.includes(".")) {
+            return "";
+        }
+
+        return nombre.split(".").pop().toLowerCase();
+    }
+
+    function bytesToHuman(bytes) {
+        if (bytes >= 1073741824) {
+            return (bytes / 1073741824).toFixed(2) + " GB";
+        }
+
+        if (bytes >= 1048576) {
+            return (bytes / 1048576).toFixed(2) + " MB";
+        }
+
+        if (bytes >= 1024) {
+            return (bytes / 1024).toFixed(2) + " KB";
+        }
+
+        return bytes + " B";
+    }
+
+    function obtenerArchivosSeleccionados() {
+        const inputs = document.querySelectorAll(".resource-input");
+        let files = [];
+
+        inputs.forEach(function (input) {
+            Array.from(input.files || []).forEach(function (file) {
+                files.push(file);
+            });
+        });
+
+        const portada = document.getElementById("portada");
+
+        if (portada && portada.files && portada.files.length > 0) {
+            files.push(portada.files[0]);
+        }
+
+        return files;
+    }
+
+    function actualizarListaArchivos() {
+        selectedFiles.innerHTML = "";
+
+        const files = obtenerArchivosSeleccionados();
+
+        files.forEach(function (file) {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <i class="bi bi-paperclip me-1"></i>
+                ${limpiar(file.name)}
+                <span class="text-muted">(${bytesToHuman(file.size)})</span>
+            `;
+            selectedFiles.appendChild(li);
+        });
+    }
+
+    function validarArchivos() {
+        const files = obtenerArchivosSeleccionados();
+        let total = 0;
+
+        for (const file of files) {
+            const ext = extensionArchivo(file.name);
+
+            if (!ALLOWED_EXTENSIONS.includes(ext)) {
+                return `El archivo "${file.name}" tiene una extensión no permitida.`;
+            }
+
+            total += file.size;
+        }
+
+        if (total > MAX_TOTAL_BYTES) {
+            return `El tamaño total de archivos es ${bytesToHuman(total)}. El máximo permitido es 2 GB.`;
+        }
+
+        return null;
+    }
+
+    function actualizarContadorDescripcion() {
+        const length = descripcionCorta.value.length;
+        descripcionCounter.textContent = `${length}/${MAX_DESCRIPCION_CORTA}`;
+
+        if (length > MAX_DESCRIPCION_CORTA) {
+            descripcionCounter.classList.remove("ok");
+            descripcionCounter.classList.add("bad");
+        } else {
+            descripcionCounter.classList.add("ok");
+            descripcionCounter.classList.remove("bad");
+        }
+    }
+
+    function crearInputRecurso() {
+        const wrapper = document.createElement("div");
+        wrapper.className = "resource-row";
+
+        wrapper.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                <label class="form-label fw-bold mb-0">Archivo de recurso</label>
+
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill remove-resource">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Quitar
+                </button>
+            </div>
+
+            <input
+                class="form-control resource-input"
+                type="file"
+                name="recursos"
+                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mp3,.wav,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+            >
+
+            <div class="small-help">
+                Selecciona un archivo adicional para este material.
+            </div>
+        `;
+
+        resourcesContainer.appendChild(wrapper);
+
+        wrapper.querySelector(".remove-resource").addEventListener("click", function () {
+            wrapper.remove();
+            actualizarListaArchivos();
+        });
+
+        wrapper.querySelector(".resource-input").addEventListener("change", function () {
+            actualizarListaArchivos();
+        });
+    }
+
+    function validarCamposLargos() {
+        const campos = [
+            ["Introducción", "introduccion", 20],
+            ["Objetivo", "objetivo", 20],
+            ["Metodología de trabajo", "metodologia_trabajo", 20],
+            ["Detalles del material", "detalles_material", 20],
+            ["Referencias bibliográficas", "referencias_bibliograficas", 10],
+            ["Conclusión del material", "conclusion", 20]
+        ];
+
+        for (const [etiqueta, nombre, minimo] of campos) {
+            const input = document.querySelector(`[name='${nombre}']`);
+            const value = input.value.trim();
+
+            if (value.length < minimo) {
+                return `${etiqueta} debe tener al menos ${minimo} caracteres.`;
+            }
+        }
+
+        return null;
+    }
+
+    function validarAlumnosSeleccionados() {
+        if (alcance.value !== "ALUMNOS_SELECCIONADOS") {
+            return null;
+        }
+
+        const seleccionados = document.querySelectorAll("input[name='alumnos']:checked");
+
+        if (seleccionados.length === 0) {
+            return "Selecciona al menos un alumno para el alcance individual.";
+        }
+
+        return null;
+    }
+
+    function validarFormulario(event) {
+        limpiarError();
+
+        const titulo = document.querySelector("[name='titulo']").value.trim();
+        const descripcion = descripcionCorta.value.trim();
+        const descripcionRecurso = document.querySelector("[name='descripcion_recurso']").value.trim();
+        const textoAlt = document.querySelector("[name='texto_alternativo']").value.trim();
+
+        if (!titulo) {
+            event.preventDefault();
+            mostrarError("El título del material es obligatorio.");
+            return;
+        }
+
+        if (titulo.length > MAX_TITULO) {
+            event.preventDefault();
+            mostrarError("El título no puede superar los 200 caracteres.");
+            return;
+        }
+
+        if (descripcion.length > MAX_DESCRIPCION_CORTA) {
+            event.preventDefault();
+            mostrarError("La descripción corta no puede superar los 500 caracteres.");
+            return;
+        }
+
+        if (descripcionRecurso.length > MAX_DESCRIPCION_RECURSO) {
+            event.preventDefault();
+            mostrarError("La descripción general de recursos no puede superar los 500 caracteres.");
+            return;
+        }
+
+        if (textoAlt.length > MAX_TEXTO_ALT) {
+            event.preventDefault();
+            mostrarError("El texto alternativo no puede superar los 300 caracteres.");
+            return;
+        }
+
+        const errorCampos = validarCamposLargos();
+
+        if (errorCampos) {
+            event.preventDefault();
+            mostrarError(errorCampos);
+            return;
+        }
+
+        const errorAlumnos = validarAlumnosSeleccionados();
+
+        if (errorAlumnos) {
+            event.preventDefault();
+            mostrarError(errorAlumnos);
+            return;
+        }
+
+        const errorArchivos = validarArchivos();
+
+        if (errorArchivos) {
+            event.preventDefault();
+            mostrarError(errorArchivos);
+        }
+    }
+
+    document.getElementById("previewButton").addEventListener("click", function () {
+        limpiarError();
+
+        const titulo = document.querySelector("[name='titulo']").value || "Vista previa";
+
+        const campos = [
+            ["Introducción", "introduccion"],
+            ["Objetivo", "objetivo"],
+            ["Metodología de trabajo", "metodologia_trabajo"],
+            ["Detalles del material", "detalles_material"],
+            ["Referencias bibliográficas", "referencias_bibliograficas"],
+            ["Conclusión", "conclusion"]
+        ];
+
+        let html = `<h3 class="fw-bold mb-3">${limpiar(titulo)}</h3>`;
+
+        campos.forEach(function ([label, name]) {
+            const value = document.querySelector(`[name='${name}']`).value;
+
+            html += `
+                <div class="preview-section">
+                    <h5>${label}</h5>
+                    <p>${limpiar(value || "Sin contenido")}</p>
+                </div>
+            `;
+        });
+
+        preview.innerHTML = html;
+        preview.hidden = false;
+        preview.scrollIntoView({ behavior: "smooth" });
+    });
+
+    addResource.addEventListener("click", crearInputRecurso);
+
+    document.querySelectorAll(".resource-input").forEach(function (input) {
+        input.addEventListener("change", actualizarListaArchivos);
+    });
+
+    document.getElementById("portada").addEventListener("change", actualizarListaArchivos);
+
+    descripcionCorta.addEventListener("input", actualizarContadorDescripcion);
+
+    alcance.addEventListener("change", actualizarAlumnos);
+
+    form.addEventListener("submit", validarFormulario);
+
+    actualizarAlumnos();
+    actualizarContadorDescripcion();
+</script>
+
+</body>
+</html>

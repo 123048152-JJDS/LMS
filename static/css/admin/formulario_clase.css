@@ -1,0 +1,7 @@
+input[name="codigo_clase"] {
+    text-transform: uppercase;
+}
+
+input[name="nombre_grupo"] {
+    text-transform: uppercase;
+}

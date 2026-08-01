@@ -1,0 +1,10 @@
+.form-grid label:has(input[name="password"]) {
+    border-top: 1px solid var(--admin-border);
+    padding-top: 18px;
+}
+
+.password-hint {
+    color: var(--admin-muted);
+    font-size: 13px;
+    margin: -8px 0 0;
+}

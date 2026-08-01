@@ -1,0 +1,4 @@
+.table-wrap td:nth-child(3) {
+    max-width: 420px;
+    color: var(--admin-muted);
+}

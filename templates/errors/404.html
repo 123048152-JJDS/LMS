@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+Página no encontrada | LMS UPQ
+{% endblock %}
+
+{% block content %}
+
+<section class="section-head">
+    <h1>Página no encontrada</h1>
+    <p>La página que intentas abrir no existe o fue movida.</p>
+</section>
+
+<section class="form-card">
+    <p>
+        Revisa la dirección de la página o vuelve al inicio de la plataforma.
+    </p>
+
+    <div class="form-actions">
+        <a href="{{ url_for('bienvenida') }}" class="button">
+            Volver al inicio
+        </a>
+    </div>
+</section>
+
+{% endblock %}

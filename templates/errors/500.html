@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+Error del servidor | LMS UPQ
+{% endblock %}
+
+{% block content %}
+
+<section class="section-head">
+    <h1>Error del servidor</h1>
+    <p>Ocurrió un problema interno al procesar la solicitud.</p>
+</section>
+
+<section class="form-card">
+    <p>
+        Intenta nuevamente. Si el problema continúa, revisa la consola de Flask
+        para identificar el error técnico.
+    </p>
+
+    <div class="form-actions">
+        <a href="{{ url_for('bienvenida') }}" class="button">
+            Volver al inicio
+        </a>
+    </div>
+</section>
+
+{% endblock %}

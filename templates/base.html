@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LMS UPQ{% endblock %}</title>
+
+    {% if current_user.is_authenticated and current_user.rol and current_user.rol.nombre == "ADMINISTRADOR" %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-layout.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/usuarios.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/formulario_usuario.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/materias.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/formulario_materia.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/clases.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/formulario_clase.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/asignar_profesor.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/asignar_alumnos.css') }}">
+    {% else %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-layout.css') }}">
+    {% endif %}
+</head>
+
+<body>
+
+{% set es_admin = current_user.is_authenticated and current_user.rol and current_user.rol.nombre == "ADMINISTRADOR" %}
+
+{% if es_admin %}
+    <div class="admin-shell">
+
+        <aside class="admin-sidebar" id="adminSidebar">
+
+            <div class="sidebar-brand">
+                <div class="brand-icon">LMS</div>
+                <div>
+                    <strong>UPQ</strong>
+                    <span>Administración</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+                    <span>📊</span>
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('admin.usuarios', tipo='alumnos') }}" class="sidebar-link">
+                    <span>🎓</span>
+                    Alumnos
+                </a>
+
+                <a href="{{ url_for('admin.usuarios', tipo='profesores') }}" class="sidebar-link">
+                    <span>👨‍🏫</span>
+                    Profesores
+                </a>
+
+                <a href="{{ url_for('admin.materias') }}" class="sidebar-link">
+                    <span>📚</span>
+                    Materias
+                </a>
+
+                <a href="{{ url_for('admin.clases') }}" class="sidebar-link">
+                    <span>🏫</span>
+                    Clases
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>{{ current_user.nombre_completo }}</p>
+                <small>{{ current_user.correo }}</small>
+
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                    Cerrar sesión
+                </a>
+            </div>
+
+        </aside>
+
+        <main class="admin-main">
+
+            <header class="admin-topbar">
+                <button type="button" class="sidebar-toggle" id="sidebarToggle">
+                    ☰
+                </button>
+
+                <div>
+                    <strong>Panel administrativo</strong>
+                    <span>Plataforma LMS UPQ</span>
+                </div>
+            </header>
+
+            <section class="admin-content">
+{% else %}
+    <main class="admin-content">
+{% endif %}
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-wrapper">
+                            {% for category, message in messages %}
+                                <div class="flash-message {{ category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+
+{% if es_admin %}
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin/admin-layout.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/usuarios.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/formulario_usuario.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/materias.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/formulario_materia.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/clases.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/formulario_clase.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/asignar_profesor.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin/asignar_alumnos.js') }}"></script>
+{% else %}
+    </main>
+{% endif %}
+
+</body>
+</html>

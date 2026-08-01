@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración | LMS UPQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body{background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#172033}
+        .layout{display:flex;min-height:100vh}
+        .sidebar{width:280px;background:linear-gradient(180deg,#063c78,#0b5cad);color:white;position:fixed;top:0;bottom:0;left:0;padding:24px 18px;display:flex;flex-direction:column}
+        .brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+        .brand-icon{width:48px;height:48px;background:white;color:#0b5cad;border-radius:14px;display:grid;place-items:center;font-weight:800}
+        .brand small{color:#d9ecff}
+        .nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}
+        .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}
+        .sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}
+        .logout{color:white;text-decoration:none;font-weight:700}
+        .main{margin-left:280px;width:calc(100% - 280px)}
+        .topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}
+        .content{padding:30px}
+        .stat-card{border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);position:relative;overflow:hidden}
+        .stat-card:after{content:"";position:absolute;width:96px;height:96px;right:-28px;top:-28px;border-radius:50%;background:#eaf1f9}
+        .stat-number{font-size:38px;font-weight:800;color:#0757a6}
+        .chart-card{border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+        .chart-box{height:260px;display:flex;align-items:center;justify-content:center}
+        .flash-message{border-radius:14px;padding:12px 16px;margin-bottom:12px;font-weight:700}
+        .success{background:#dcfce7;color:#166534}.danger,.error{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#92400e}
+        @media(max-width:900px){.sidebar{position:relative;width:100%;min-height:auto}.layout{display:block}.main{margin-left:0;width:100%}}
+    </style>
+</head>
+
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">LMS</div>
+            <div>
+                <strong>UPQ</strong><br>
+                <small>Administración</small>
+            </div>
+        </div>
+
+        <nav>
+            <a class="nav-link active" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+            <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='alumnos') }}"><i class="bi bi-mortarboard me-2"></i>Alumnos</a>
+            <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='profesores') }}"><i class="bi bi-person-workspace me-2"></i>Profesores</a>
+            <a class="nav-link" href="{{ url_for('admin.materias') }}"><i class="bi bi-journal-bookmark me-2"></i>Materias</a>
+            <a class="nav-link" href="{{ url_for('admin.clases') }}"><i class="bi bi-easel2 me-2"></i>Clases</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p class="mb-1">{{ current_user.nombre_completo }}</p>
+            <small>{{ current_user.correo }}</small><br>
+            <a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <strong>Panel administrativo</strong><br>
+                <small class="text-muted">Plataforma LMS UPQ</small>
+            </div>
+        </header>
+
+        <section class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="mb-4">
+                <h1 class="fw-bold">Administración</h1>
+                <p class="text-muted">Resumen general de actividad académica.</p>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card p-4">
+                        <i class="bi bi-mortarboard fs-3 text-primary"></i>
+                        <div class="stat-number">{{ stats.alumnos }}</div>
+                        <strong>Alumnos activos</strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card stat-card p-4">
+                        <i class="bi bi-person-workspace fs-3 text-primary"></i>
+                        <div class="stat-number">{{ stats.profesores }}</div>
+                        <strong>Profesores activos</strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card stat-card p-4">
+                        <i class="bi bi-journal-bookmark fs-3 text-primary"></i>
+                        <div class="stat-number">{{ stats.materias }}</div>
+                        <strong>Materias activas</strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card stat-card p-4">
+                        <i class="bi bi-easel2 fs-3 text-primary"></i>
+                        <div class="stat-number">{{ stats.clases }}</div>
+                        <strong>Clases activas</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card chart-card p-4">
+                        <h5 class="fw-bold">Clases creadas este mes</h5>
+                        <p class="text-muted mb-2">Meta mensual: 3 clases</p>
+                        <div class="chart-box">
+                            <canvas id="clasesMesChart"></canvas>
+                        </div>
+                        <div class="text-center fw-bold">
+                            {{ stats.clases_mes }} de 3 clases
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card chart-card p-4">
+                        <h5 class="fw-bold">Usuarios creados este mes</h5>
+                        <p class="text-muted mb-2">Meta mensual: 2 usuarios</p>
+                        <div class="chart-box">
+                            <canvas id="usuariosMesChart"></canvas>
+                        </div>
+                        <div class="text-center fw-bold">
+                            {{ stats.usuarios_mes }} de 2 usuarios
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card chart-card p-4">
+                        <h5 class="fw-bold">Estado de clases</h5>
+                        <p class="text-muted mb-2">Activas e inactivas</p>
+                        <div class="chart-box">
+                            <canvas id="estadoClasesChart"></canvas>
+                        </div>
+                        <div class="text-center fw-bold">
+                            {{ stats.clases_activas }} activas / {{ stats.clases_inactivas }} inactivas
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const clasesMes = Number("{{ stats.clases_mes|default(0) }}");
+    const usuariosMes = Number("{{ stats.usuarios_mes|default(0) }}");
+    const clasesActivas = Number("{{ stats.clases_activas|default(0) }}");
+    const clasesInactivas = Number("{{ stats.clases_inactivas|default(0) }}");
+
+    function donut(id, labels, data, colors) {
+        new Chart(document.getElementById(id), {
+            type: "doughnut",
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "72%",
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+    }
+
+    donut(
+        "clasesMesChart",
+        ["Avance", "Pendiente"],
+        [Math.min(clasesMes, 3), Math.max(3 - clasesMes, 0)],
+        ["#0b5cad", "#dbe7f3"]
+    );
+
+    donut(
+        "usuariosMesChart",
+        ["Avance", "Pendiente"],
+        [Math.min(usuariosMes, 2), Math.max(2 - usuariosMes, 0)],
+        ["#0f9f8f", "#dbe7f3"]
+    );
+
+    donut(
+        "estadoClasesChart",
+        ["Activas", "Inactivas"],
+        [clasesActivas, clasesInactivas],
+        ["#22c55e", "#ef4444"]
+    );
+</script>
+</body>
+</html>
