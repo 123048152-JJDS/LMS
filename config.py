@@ -16,7 +16,7 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://root:2983@localhost/lms_upq"
+        "postgresql+psycopg2://postgres:postgres@localhost:5432/lms_upq"
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -27,8 +27,8 @@ class Config:
     }
 
     MAX_CONTENT_LENGTH = int(
-    os.getenv("MAX_CONTENT_LENGTH", "2147483648")
-)
+        os.getenv("MAX_CONTENT_LENGTH", "2147483648")
+    )
 
     UPLOAD_FOLDER = os.getenv(
         "UPLOAD_FOLDER",

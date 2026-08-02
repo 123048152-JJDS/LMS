@@ -364,6 +364,81 @@ def formulario_materia(materia_id=None):
     )
 
 
+@admin_bp.route("/periodos")
+@role_required("ADMINISTRADOR")
+def periodos():
+    periodos_lista = (
+        PeriodoAcademico.query
+        .order_by(PeriodoAcademico.fecha_inicio.desc())
+        .all()
+    )
+
+    return render_template(
+        "admin/periodos.html",
+        periodos=periodos_lista
+    )
+
+
+@admin_bp.route("/periodos/nuevo", methods=["GET", "POST"])
+@admin_bp.route("/periodos/<int:periodo_id>/editar", methods=["GET", "POST"])
+@role_required("ADMINISTRADOR")
+def formulario_periodo(periodo_id=None):
+    periodo = (
+        PeriodoAcademico.query.get_or_404(periodo_id)
+        if periodo_id
+        else PeriodoAcademico(activo=True)
+    )
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        fecha_inicio_raw = request.form.get("fecha_inicio", "").strip()
+        fecha_fin_raw = request.form.get("fecha_fin", "").strip()
+
+        if not nombre or not fecha_inicio_raw or not fecha_fin_raw:
+            flash("Completa el nombre y ambas fechas del periodo.", "danger")
+            return render_template("admin/formulario_periodo.html", periodo=periodo)
+
+        try:
+            fecha_inicio = date.fromisoformat(fecha_inicio_raw)
+            fecha_fin = date.fromisoformat(fecha_fin_raw)
+        except ValueError:
+            flash("Las fechas capturadas no son válidas.", "danger")
+            return render_template("admin/formulario_periodo.html", periodo=periodo)
+
+        if fecha_fin < fecha_inicio:
+            flash("La fecha de fin no puede ser anterior a la fecha de inicio.", "danger")
+            return render_template("admin/formulario_periodo.html", periodo=periodo)
+
+        nombre_duplicado = (
+            PeriodoAcademico.query
+            .filter(
+                PeriodoAcademico.nombre == nombre,
+                PeriodoAcademico.id != (periodo.id or 0)
+            )
+            .first()
+        )
+
+        if nombre_duplicado:
+            flash("Ya existe un periodo académico con ese nombre.", "danger")
+            return render_template("admin/formulario_periodo.html", periodo=periodo)
+
+        periodo.nombre = nombre
+        periodo.fecha_inicio = fecha_inicio
+        periodo.fecha_fin = fecha_fin
+        periodo.activo = form_bool("activo")
+
+        db.session.add(periodo)
+        db.session.commit()
+
+        flash("Periodo académico guardado correctamente.", "success")
+        return redirect(url_for("admin.periodos"))
+
+    return render_template(
+        "admin/formulario_periodo.html",
+        periodo=periodo
+    )
+
+
 @admin_bp.route("/clases")
 @role_required("ADMINISTRADOR")
 def clases():

@@ -1,22 +1,47 @@
 from datetime import datetime
 
 from flask_login import UserMixin
-from sqlalchemy.dialects.mysql import (
-    BIGINT,
-    INTEGER,
-    TINYINT,
-    ENUM,
-    LONGTEXT
-)
+from sqlalchemy.dialects.postgresql import ENUM as PGEnum
 
 from extensions import db
+
+
+# ------------------------------------------------------------
+# Tipos ENUM nativos de PostgreSQL.
+# create_type=False porque los tipos ya fueron creados por
+# postgresql/01_schema.sql (evita que Flask-Migrate/SQLAlchemy
+# intente crearlos de nuevo y choque con los existentes).
+# ------------------------------------------------------------
+EstadoInscripcion = PGEnum(
+    "ACTIVO", "BAJA", "FINALIZADO",
+    name="estado_inscripcion",
+    create_type=False,
+)
+
+EstadoMaterial = PGEnum(
+    "BORRADOR", "PUBLICADO", "ARCHIVADO",
+    name="estado_material",
+    create_type=False,
+)
+
+AlcanceMaterial = PGEnum(
+    "TODA_LA_CLASE", "ALUMNOS_SELECCIONADOS",
+    name="alcance_material",
+    create_type=False,
+)
+
+TipoRecurso = PGEnum(
+    "PDF", "IMAGEN", "VIDEO", "AUDIO", "DOCUMENTO", "PRESENTACION", "ENLACE",
+    name="tipo_recurso",
+    create_type=False,
+)
 
 
 class Rol(db.Model):
     __tablename__ = "roles"
 
     id = db.Column(
-        TINYINT(unsigned=True),
+        db.SmallInteger,
         primary_key=True,
         autoincrement=True
     )
@@ -52,7 +77,7 @@ class Carrera(db.Model):
     __tablename__ = "carreras"
 
     id = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         primary_key=True,
         autoincrement=True
     )
@@ -101,7 +126,7 @@ class PeriodoAcademico(db.Model):
     __tablename__ = "periodos_academicos"
 
     id = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         primary_key=True,
         autoincrement=True
     )
@@ -155,13 +180,13 @@ class Usuario(UserMixin, db.Model):
     __tablename__ = "usuarios"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     rol_id = db.Column(
-        TINYINT(unsigned=True),
+        db.SmallInteger,
         db.ForeignKey("roles.id"),
         nullable=False
     )
@@ -259,20 +284,20 @@ class Alumno(db.Model):
     __tablename__ = "alumnos"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     usuario_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("usuarios.id"),
         nullable=False,
         unique=True
     )
 
     carrera_id = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         db.ForeignKey("carreras.id"),
         nullable=False
     )
@@ -284,7 +309,7 @@ class Alumno(db.Model):
     )
 
     cuatrimestre = db.Column(
-        TINYINT(unsigned=True),
+        db.SmallInteger,
         nullable=False
     )
 
@@ -337,13 +362,13 @@ class Profesor(db.Model):
     __tablename__ = "profesores"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     usuario_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("usuarios.id"),
         nullable=False,
         unique=True
@@ -398,7 +423,7 @@ class Materia(db.Model):
     __tablename__ = "materias"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
@@ -452,19 +477,19 @@ class Clase(db.Model):
     __tablename__ = "clases"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     materia_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("materias.id"),
         nullable=False
     )
 
     periodo_id = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         db.ForeignKey("periodos_academicos.id"),
         nullable=False
     )
@@ -543,13 +568,13 @@ class ClaseProfesor(db.Model):
     __tablename__ = "clase_profesores"
 
     clase_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("clases.id"),
         primary_key=True
     )
 
     profesor_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("profesores.id"),
         primary_key=True
     )
@@ -584,29 +609,25 @@ class Inscripcion(db.Model):
     __tablename__ = "inscripciones"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     clase_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("clases.id"),
         nullable=False
     )
 
     alumno_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("alumnos.id"),
         nullable=False
     )
 
     estado = db.Column(
-        ENUM(
-            "ACTIVO",
-            "BAJA",
-            "FINALIZADO"
-        ),
+        EstadoInscripcion,
         nullable=False,
         default="ACTIVO"
     )
@@ -642,19 +663,19 @@ class Material(db.Model):
     __tablename__ = "materiales"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     clase_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("clases.id"),
         nullable=False
     )
 
     profesor_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("profesores.id"),
         nullable=False
     )
@@ -670,32 +691,32 @@ class Material(db.Model):
     )
 
     introduccion = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
     objetivo = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
     metodologia_trabajo = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
     detalles_material = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
     referencias_bibliograficas = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
     conclusion = db.Column(
-        LONGTEXT,
+        db.Text,
         nullable=False
     )
 
@@ -705,20 +726,13 @@ class Material(db.Model):
     )
 
     estado = db.Column(
-        ENUM(
-            "BORRADOR",
-            "PUBLICADO",
-            "ARCHIVADO"
-        ),
+        EstadoMaterial,
         nullable=False,
         default="BORRADOR"
     )
 
     alcance = db.Column(
-        ENUM(
-            "TODA_LA_CLASE",
-            "ALUMNOS_SELECCIONADOS"
-        ),
+        AlcanceMaterial,
         nullable=False,
         default="TODA_LA_CLASE"
     )
@@ -793,13 +807,13 @@ class MaterialAlumno(db.Model):
     __tablename__ = "material_alumnos"
 
     material_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("materiales.id"),
         primary_key=True
     )
 
     alumno_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("alumnos.id"),
         primary_key=True
     )
@@ -828,27 +842,19 @@ class RecursoMaterial(db.Model):
     __tablename__ = "recursos_material"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     material_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("materiales.id"),
         nullable=False
     )
 
     tipo = db.Column(
-        ENUM(
-            "PDF",
-            "IMAGEN",
-            "VIDEO",
-            "AUDIO",
-            "DOCUMENTO",
-            "PRESENTACION",
-            "ENLACE"
-        ),
+        TipoRecurso,
         nullable=False
     )
 
@@ -868,7 +874,7 @@ class RecursoMaterial(db.Model):
     )
 
     tamanio_bytes = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         nullable=True
     )
 
@@ -883,7 +889,7 @@ class RecursoMaterial(db.Model):
     )
 
     orden = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         nullable=False,
         default=1
     )
@@ -907,19 +913,19 @@ class ConsultaMaterial(db.Model):
     __tablename__ = "consultas_material"
 
     id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         primary_key=True,
         autoincrement=True
     )
 
     material_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("materiales.id"),
         nullable=False
     )
 
     alumno_id = db.Column(
-        BIGINT(unsigned=True),
+        db.BigInteger,
         db.ForeignKey("alumnos.id"),
         nullable=False
     )
@@ -937,7 +943,7 @@ class ConsultaMaterial(db.Model):
     )
 
     numero_consultas = db.Column(
-        INTEGER(unsigned=True),
+        db.Integer,
         nullable=False,
         default=1
     )

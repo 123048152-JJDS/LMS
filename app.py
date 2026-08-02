@@ -7,6 +7,7 @@ from config import Config
 from extensions import csrf, db, login_manager, migrate
 from models import Rol, Usuario
 from routes import register_blueprints
+from db_bootstrap import inicializar_base_datos
 
 
 def create_app(config_object=Config):
@@ -19,6 +20,8 @@ def create_app(config_object=Config):
     csrf.init_app(app)
 
     login_manager.login_message = "Inicia sesión para continuar."
+
+    inicializar_base_datos(app, db)
 
     register_login_manager()
     register_routes(app)
