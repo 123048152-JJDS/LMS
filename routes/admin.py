@@ -299,6 +299,70 @@ def desactivar_usuario(tipo, usuario_id):
     return redirect(url_for("admin.usuarios", tipo=tipo))
 
 
+@admin_bp.route("/carreras")
+@role_required("ADMINISTRADOR")
+def carreras():
+    carreras_lista = Carrera.query.order_by(Carrera.nombre).all()
+
+    return render_template(
+        "admin/carreras.html",
+        carreras=carreras_lista
+    )
+
+
+@admin_bp.route("/carreras/nueva", methods=["GET", "POST"])
+@admin_bp.route("/carreras/<int:carrera_id>/editar", methods=["GET", "POST"])
+@role_required("ADMINISTRADOR")
+def formulario_carrera(carrera_id=None):
+    carrera = (
+        Carrera.query.get_or_404(carrera_id)
+        if carrera_id
+        else Carrera(activa=True)
+    )
+
+    if request.method == "POST":
+        clave = request.form.get("clave", "").strip().upper()
+        nombre = request.form.get("nombre", "").strip()
+
+        if not clave or not nombre:
+            flash("La clave y el nombre de la carrera son obligatorios.", "danger")
+            return render_template(
+                "admin/formulario_carrera.html",
+                carrera=carrera
+            )
+
+        clave_duplicada = (
+            Carrera.query
+            .filter(
+                Carrera.clave == clave,
+                Carrera.id != (carrera.id or 0)
+            )
+            .first()
+        )
+
+        if clave_duplicada:
+            flash("La clave de carrera ya existe.", "danger")
+            return render_template(
+                "admin/formulario_carrera.html",
+                carrera=carrera
+            )
+
+        carrera.clave = clave
+        carrera.nombre = nombre
+        carrera.activa = form_bool("activa") or form_bool("activo")
+
+        db.session.add(carrera)
+        db.session.commit()
+
+        flash("Carrera guardada correctamente.", "success")
+        return redirect(url_for("admin.carreras"))
+
+    return render_template(
+        "admin/formulario_carrera.html",
+        carrera=carrera
+    )
+
+
 @admin_bp.route("/materias")
 @role_required("ADMINISTRADOR")
 def materias():

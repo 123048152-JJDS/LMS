@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Materias | LMS UPQ</title>
+    <title>Carreras | LMS UPQ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -21,8 +21,8 @@
             <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
             <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='alumnos') }}"><i class="bi bi-mortarboard me-2"></i>Alumnos</a>
             <a class="nav-link" href="{{ url_for('admin.usuarios', tipo='profesores') }}"><i class="bi bi-person-workspace me-2"></i>Profesores</a>
-            <a class="nav-link active" href="{{ url_for('admin.materias') }}"><i class="bi bi-journal-bookmark me-2"></i>Materias</a>
-            <a class="nav-link" href="{{ url_for('admin.carreras') }}"><i class="bi bi-mortarboard-fill me-2"></i>Carreras</a>
+            <a class="nav-link" href="{{ url_for('admin.materias') }}"><i class="bi bi-journal-bookmark me-2"></i>Materias</a>
+            <a class="nav-link active" href="{{ url_for('admin.carreras') }}"><i class="bi bi-mortarboard-fill me-2"></i>Carreras</a>
             <a class="nav-link" href="{{ url_for('admin.periodos') }}"><i class="bi bi-calendar3 me-2"></i>Periodos</a>
             <a class="nav-link" href="{{ url_for('admin.clases') }}"><i class="bi bi-easel2 me-2"></i>Clases</a>
         </nav>
@@ -30,22 +30,28 @@
     </aside>
 
     <main class="main">
-        <header class="topbar"><strong>Materias</strong></header>
+        <header class="topbar"><strong>Carreras</strong></header>
 
         <section class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category in ['danger','error'] else category }} rounded-4 fw-bold">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h1 class="fw-bold">Materias</h1>
-                    <p class="text-muted mb-0">Catálogo de materias registradas.</p>
+                    <h1 class="fw-bold">Carreras</h1>
+                    <p class="text-muted mb-0">Oferta académica de la UPQ (ingenierías y licenciaturas).</p>
                 </div>
 
-                <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('admin.formulario_materia') }}">
-                    <i class="bi bi-plus-circle me-1"></i>Nueva materia
+                <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('admin.formulario_carrera') }}">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva carrera
                 </a>
             </div>
 
             <div class="card card-box p-4">
-                <input id="buscarTabla" class="form-control rounded-pill mb-3" placeholder="Buscar materia...">
+                <input id="buscarTabla" class="form-control rounded-pill mb-3" placeholder="Buscar carrera...">
 
                 <div class="table-responsive">
                     <table class="table align-middle">
@@ -53,33 +59,31 @@
                             <tr>
                                 <th>Clave</th>
                                 <th>Nombre</th>
-                                <th>Descripción</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
 
                         <tbody id="tablaDatos">
-                            {% for materia in materias %}
+                            {% for carrera in carreras %}
                                 <tr>
-                                    <td><strong class="text-primary">{{ materia.clave }}</strong></td>
-                                    <td>{{ materia.nombre }}</td>
-                                    <td>{{ materia.descripcion or "Sin descripción" }}</td>
+                                    <td><strong class="text-primary">{{ carrera.clave }}</strong></td>
+                                    <td>{{ carrera.nombre }}</td>
                                     <td>
-                                        {% if materia.activa %}
+                                        {% if carrera.activa %}
                                             <span class="badge text-bg-success">Activa</span>
                                         {% else %}
                                             <span class="badge text-bg-danger">Inactiva</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.formulario_materia', materia_id=materia.id) }}">
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.formulario_carrera', carrera_id=carrera.id) }}">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                     </td>
                                 </tr>
                             {% else %}
-                                <tr><td colspan="5" class="text-center text-muted py-4">No hay materias registradas.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-4">No hay carreras registradas.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
