@@ -18,6 +18,7 @@ from models import (
     Material,
     MaterialAlumno,
     RecursoMaterial,
+    Unidad,
 )
 from routes.decorators import role_required
 
@@ -75,15 +76,17 @@ def alumno_can_access(material, alumno):
     if not material.activo:
         return False
 
-    if not material.clase:
+    if not material.unidad or not material.unidad.clase:
         return False
 
-    if not material.clase.activa:
+    clase = material.unidad.clase
+
+    if not clase.activa:
         return False
 
     if not alumno_tiene_inscripcion_activa(
         alumno_id=alumno.id,
-        clase_id=material.clase_id
+        clase_id=clase.id
     ):
         return False
 
@@ -140,7 +143,8 @@ def obtener_inscripciones_activas(alumno):
 def obtener_materiales_disponibles(alumno, clase_id=None):
     query = (
         Material.query
-        .join(Clase, Clase.id == Material.clase_id)
+        .join(Unidad, Unidad.id == Material.unidad_id)
+        .join(Clase, Clase.id == Unidad.clase_id)
         .filter(
             Material.estado == "PUBLICADO",
             Material.activo.is_(True),
@@ -149,7 +153,7 @@ def obtener_materiales_disponibles(alumno, clase_id=None):
     )
 
     if clase_id is not None:
-        query = query.filter(Material.clase_id == clase_id)
+        query = query.filter(Unidad.clase_id == clase_id)
     else:
         inscripciones = obtener_inscripciones_activas(alumno)
         clases_ids = [
@@ -160,7 +164,7 @@ def obtener_materiales_disponibles(alumno, clase_id=None):
         if not clases_ids:
             return []
 
-        query = query.filter(Material.clase_id.in_(clases_ids))
+        query = query.filter(Unidad.clase_id.in_(clases_ids))
 
     materiales_base = (
         query

@@ -13,6 +13,7 @@ from models import (
     PeriodoAcademico,
     Profesor,
     Rol,
+    Unidad,
     Usuario,
 )
 from routes.decorators import role_required
@@ -721,4 +722,44 @@ def asignar_alumnos(clase_id):
         clase=clase,
         alumnos=alumnos,
         alumnos_asignados=alumnos_asignados
+    )
+
+
+@admin_bp.route("/clases/<int:clase_id>/unidades")
+@role_required("ADMINISTRADOR")
+def unidades_clase(clase_id):
+    """
+    Vista de solo lectura para el administrador: ve las unidades de
+    una clase y cuantos materiales tiene cada una. La creacion y
+    edicion de unidades y materiales sigue siendo exclusiva del
+    profesor que imparte la clase.
+    """
+    clase = Clase.query.get_or_404(clase_id)
+
+    unidades = (
+        Unidad.query
+        .filter_by(clase_id=clase.id)
+        .order_by(Unidad.orden)
+        .all()
+    )
+
+    return render_template(
+        "admin/unidades_clase.html",
+        clase=clase,
+        unidades=unidades
+    )
+
+
+@admin_bp.route("/unidades/<int:unidad_id>/materiales")
+@role_required("ADMINISTRADOR")
+def materiales_unidad(unidad_id):
+    """
+    Vista de solo lectura para el administrador: ve los materiales de
+    una unidad, quien los creo y con quien estan compartidos.
+    """
+    unidad = Unidad.query.get_or_404(unidad_id)
+
+    return render_template(
+        "admin/materiales_unidad.html",
+        unidad=unidad
     )

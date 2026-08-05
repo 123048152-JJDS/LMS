@@ -3,6 +3,7 @@ from pathlib import Path
 
 from flask import (
     Blueprint,
+    abort,
     current_app,
     flash,
     redirect,
@@ -23,8 +24,10 @@ from models import (
     Inscripcion,
     Material,
     MaterialAlumno,
+    MaterialColaborador,
     Profesor,
     RecursoMaterial,
+    Unidad,
     Usuario,
 )
 from routes.decorators import role_required
@@ -74,6 +77,19 @@ def profesor_tiene_clase(profesor_id, clase_id):
     ).first() is not None
 
 
+def profesor_tiene_unidad(profesor_id, unidad_id):
+    return (
+        Unidad.query
+        .join(ClaseProfesor, ClaseProfesor.clase_id == Unidad.clase_id)
+        .filter(
+            Unidad.id == unidad_id,
+            ClaseProfesor.profesor_id == profesor_id
+        )
+        .first()
+        is not None
+    )
+
+
 def profesor_clase_or_404(clase_id):
     profesor = current_profesor()
 
@@ -90,13 +106,49 @@ def profesor_clase_or_404(clase_id):
     return profesor, clase
 
 
-def profesor_material_or_404(material_id):
+def profesor_unidad_or_404(unidad_id):
+    profesor = current_profesor()
+
+    unidad = (
+        Unidad.query
+        .join(ClaseProfesor, ClaseProfesor.clase_id == Unidad.clase_id)
+        .filter(
+            Unidad.id == unidad_id,
+            ClaseProfesor.profesor_id == profesor.id
+        )
+        .first_or_404()
+    )
+
+    return profesor, unidad
+
+
+def profesor_material_propio_or_404(material_id):
+    """
+    Para acciones de gestion (editar, publicar, archivar, compartir):
+    SOLO el profesor que creo el material puede hacerlo. Compartir un
+    material no le da permisos de edicion a nadie mas.
+    """
     profesor = current_profesor()
 
     material = Material.query.filter_by(
         id=material_id,
         profesor_id=profesor.id
     ).first_or_404()
+
+    return profesor, material
+
+
+def profesor_material_visible_or_404(material_id):
+    """
+    Para VER un material (detalle, recursos): el dueno, o cualquier
+    profesor que el dueno haya autorizado explicitamente como
+    colaborador. Cualquier otro profesor recibe 403.
+    """
+    profesor = current_profesor()
+    material = Material.query.get_or_404(material_id)
+
+    if not material.es_accesible_por_profesor(profesor.id):
+        abort(403)
 
     return profesor, material
 
@@ -137,7 +189,7 @@ def resource_type(filename, mimetype=None):
 
 
 def form_bool(nombre):
-    return request.form.get(nombre) in {"on", "true", "1", "si", "sí"}
+    return request.form.get(nombre) in {"on", "true", "1", "si", "si"}
 
 
 def clases_del_profesor(profesor_id, solo_activas=False):
@@ -153,6 +205,21 @@ def clases_del_profesor(profesor_id, solo_activas=False):
     return (
         consulta
         .order_by(Clase.id.desc())
+        .all()
+    )
+
+
+def unidades_del_profesor(profesor_id):
+    """Todas las unidades de todas las clases que imparte el profesor,
+    usadas para el selector al mover/crear un material."""
+    return (
+        Unidad.query
+        .join(ClaseProfesor, ClaseProfesor.clase_id == Unidad.clase_id)
+        .filter(
+            ClaseProfesor.profesor_id == profesor_id,
+            Unidad.activa.is_(True)
+        )
+        .order_by(Unidad.clase_id, Unidad.orden)
         .all()
     )
 
@@ -195,11 +262,16 @@ def dashboard():
         estado="PUBLICADO"
     ).count()
 
+    compartidos_conmigo = MaterialColaborador.query.filter_by(
+        profesor_id=profesor.id
+    ).count()
+
     return render_template(
         "profesor/dashboard.html",
         clases=clases,
         materiales=materiales,
-        publicados=publicados
+        publicados=publicados,
+        compartidos_conmigo=compartidos_conmigo
     )
 
 
@@ -240,13 +312,10 @@ def detalle_clase(clase_id):
         .all()
     )
 
-    materiales = (
-        Material.query
-        .filter_by(
-            clase_id=clase.id,
-            profesor_id=profesor.id
-        )
-        .order_by(Material.actualizado_en.desc())
+    unidades = (
+        Unidad.query
+        .filter_by(clase_id=clase.id)
+        .order_by(Unidad.orden)
         .all()
     )
 
@@ -254,6 +323,64 @@ def detalle_clase(clase_id):
         "profesor/detalle_clase.html",
         clase=clase,
         inscripciones=inscripciones,
+        unidades=unidades
+    )
+
+
+@profesor_bp.route("/clases/<int:clase_id>/unidades/nueva", methods=["GET", "POST"])
+@profesor_bp.route("/unidades/<int:unidad_id>/editar", methods=["GET", "POST"])
+@role_required("PROFESOR")
+def formulario_unidad(clase_id=None, unidad_id=None):
+    if unidad_id:
+        profesor, unidad = profesor_unidad_or_404(unidad_id)
+        clase = unidad.clase
+    else:
+        profesor, clase = profesor_clase_or_404(clase_id)
+        unidad = Unidad(clase_id=clase.id, activa=True)
+
+    if request.method == "POST":
+        titulo = request.form.get("titulo", "").strip()
+        descripcion = request.form.get("descripcion", "").strip()
+        orden = request.form.get("orden", "").strip()
+
+        if not titulo:
+            flash("El titulo de la unidad es obligatorio.", "danger")
+            return render_template("profesor/formulario_unidad.html", unidad=unidad, clase=clase)
+
+        unidad.clase_id = clase.id
+        unidad.titulo = titulo
+        unidad.descripcion = descripcion or None
+        unidad.orden = int(orden) if orden.isdigit() else (unidad.orden or 1)
+        unidad.activa = form_bool("activa") or not unidad.id
+
+        db.session.add(unidad)
+        db.session.commit()
+
+        flash("Unidad guardada correctamente.", "success")
+        return redirect(url_for("profesor.detalle_clase", clase_id=clase.id))
+
+    return render_template(
+        "profesor/formulario_unidad.html",
+        unidad=unidad,
+        clase=clase
+    )
+
+
+@profesor_bp.route("/unidades/<int:unidad_id>")
+@role_required("PROFESOR")
+def detalle_unidad(unidad_id):
+    profesor, unidad = profesor_unidad_or_404(unidad_id)
+
+    materiales = (
+        Material.query
+        .filter_by(unidad_id=unidad.id)
+        .order_by(Material.creado_en.desc())
+        .all()
+    )
+
+    return render_template(
+        "profesor/detalle_unidad.html",
+        unidad=unidad,
         materiales=materiales
     )
 
@@ -276,17 +403,32 @@ def materiales():
     )
 
 
-@profesor_bp.route("/materiales/crear", methods=["GET", "POST"])
+@profesor_bp.route("/materiales/compartidos")
 @role_required("PROFESOR")
-def crear_material():
+def materiales_compartidos():
     profesor = current_profesor()
 
-    clases = clases_del_profesor(
-        profesor_id=profesor.id,
-        solo_activas=True
+    autorizaciones = (
+        MaterialColaborador.query
+        .filter_by(profesor_id=profesor.id)
+        .join(Material)
+        .order_by(MaterialColaborador.autorizado_en.desc())
+        .all()
     )
 
+    return render_template(
+        "profesor/materiales_compartidos.html",
+        autorizaciones=autorizaciones
+    )
+
+
+@profesor_bp.route("/unidades/<int:unidad_id>/materiales/nuevo", methods=["GET", "POST"])
+@role_required("PROFESOR")
+def crear_material(unidad_id):
+    profesor, unidad = profesor_unidad_or_404(unidad_id)
+
     material = Material(
+        unidad_id=unidad.id,
         profesor_id=profesor.id,
         permite_descarga=False,
         alcance="TODA_LA_CLASE",
@@ -294,14 +436,12 @@ def crear_material():
         activo=True
     )
 
-    clase_id = request.args.get("clase_id", type=int)
-
-    if clase_id and profesor_tiene_clase(profesor.id, clase_id):
-        material.clase_id = clase_id
+    alumnos = alumnos_activos_de_clase(unidad.clase_id)
 
     return guardar_material(
         material=material,
-        clases=clases,
+        unidad=unidad,
+        alumnos=alumnos,
         nuevo=True
     )
 
@@ -309,55 +449,36 @@ def crear_material():
 @profesor_bp.route("/materiales/<int:material_id>/editar", methods=["GET", "POST"])
 @role_required("PROFESOR")
 def editar_material(material_id):
-    profesor, material = profesor_material_or_404(material_id)
-
-    clases = clases_del_profesor(
-        profesor_id=profesor.id,
-        solo_activas=True
-    )
+    profesor, material = profesor_material_propio_or_404(material_id)
+    unidad = material.unidad
+    alumnos = alumnos_activos_de_clase(unidad.clase_id)
 
     return guardar_material(
         material=material,
-        clases=clases,
+        unidad=unidad,
+        alumnos=alumnos,
         nuevo=False
     )
 
 
-def guardar_material(material, clases, nuevo):
-    clase_id = (
-        request.form.get("clase_id", type=int)
-        if request.method == "POST"
-        else material.clase_id
-    )
-
-    alumnos = []
-
-    if clase_id:
-        profesor_clase_or_404(clase_id)
-        alumnos = alumnos_activos_de_clase(clase_id)
-
+def guardar_material(material, unidad, alumnos, nuevo):
     if request.method == "POST":
         errores = []
-
-        clases_ids = {clase.id for clase in clases}
-
-        if not clase_id or clase_id not in clases_ids:
-            errores.append("La clase seleccionada no pertenece al profesor.")
 
         titulo = request.form.get("titulo", "").strip()
 
         if not titulo:
-            errores.append("El título del material es obligatorio.")
+            errores.append("El titulo del material es obligatorio.")
 
         for campo in USKOV_FIELDS:
             if not request.form.get(campo, "").strip():
-                errores.append("Todas las secciones de la metodología Uskov son obligatorias.")
+                errores.append("Todas las secciones de la metodologia Uskov son obligatorias.")
                 break
 
         alcance = request.form.get("alcance", "TODA_LA_CLASE")
 
         if alcance not in {"TODA_LA_CLASE", "ALUMNOS_SELECCIONADOS"}:
-            errores.append("El alcance seleccionado no es válido.")
+            errores.append("El alcance seleccionado no es valido.")
 
         alumnos_seleccionados = {
             int(item)
@@ -392,7 +513,7 @@ def guardar_material(material, clases, nuevo):
 
         for archivo in archivos_a_validar:
             if not allowed_file(archivo.filename):
-                errores.append("Hay archivos con extensión no permitida.")
+                errores.append("Hay archivos con extension no permitida.")
                 break
 
         if errores:
@@ -402,11 +523,11 @@ def guardar_material(material, clases, nuevo):
             return render_template(
                 "profesor/creacion.html" if nuevo else "profesor/editar_material.html",
                 material=material,
-                clases=clases,
+                unidad=unidad,
                 alumnos=alumnos
             )
 
-        material.clase_id = clase_id
+        material.unidad_id = unidad.id
         material.titulo = titulo
         material.descripcion_corta = request.form.get("descripcion_corta", "").strip() or None
 
@@ -457,7 +578,7 @@ def guardar_material(material, clases, nuevo):
     return render_template(
         "profesor/creacion.html" if nuevo else "profesor/editar_material.html",
         material=material,
-        clases=clases,
+        unidad=unidad,
         alumnos=alumnos
     )
 
@@ -523,18 +644,82 @@ def save_uploads(material, portada, uploaded_files):
 @profesor_bp.route("/materiales/<int:material_id>")
 @role_required("PROFESOR")
 def detalle_material(material_id):
-    _, material = profesor_material_or_404(material_id)
+    profesor, material = profesor_material_visible_or_404(material_id)
+
+    es_dueno = material.profesor_id == profesor.id
 
     return render_template(
         "profesor/detalle_material.html",
-        material=material
+        material=material,
+        es_dueno=es_dueno
+    )
+
+
+@profesor_bp.route("/materiales/<int:material_id>/compartir", methods=["GET", "POST"])
+@role_required("PROFESOR")
+def compartir_material(material_id):
+    """
+    Solo el profesor dueno del material puede autorizar (o quitar la
+    autorizacion) a otros profesores para verlo y usarlo.
+    """
+    profesor, material = profesor_material_propio_or_404(material_id)
+
+    otros_profesores = (
+        Profesor.query
+        .join(Usuario)
+        .filter(
+            Usuario.activo.is_(True),
+            Profesor.id != profesor.id
+        )
+        .order_by(
+            Usuario.apellido_paterno,
+            Usuario.apellido_materno,
+            Usuario.nombre
+        )
+        .all()
+    )
+
+    autorizados = {
+        colaborador.profesor_id
+        for colaborador in material.colaboradores
+    }
+
+    if request.method == "POST":
+        seleccionados = {
+            int(item)
+            for item in request.form.getlist("colaboradores")
+            if item.isdigit()
+        }
+
+        MaterialColaborador.query.filter_by(
+            material_id=material.id
+        ).delete(synchronize_session=False)
+
+        for profesor_id in seleccionados:
+            db.session.add(
+                MaterialColaborador(
+                    material_id=material.id,
+                    profesor_id=profesor_id
+                )
+            )
+
+        db.session.commit()
+
+        flash("Autorizaciones de material actualizadas correctamente.", "success")
+        return redirect(url_for("profesor.detalle_material", material_id=material.id))
+
+    return render_template(
+        "profesor/compartir_material.html",
+        material=material,
+        otros_profesores=otros_profesores,
+        autorizados=autorizados
     )
 
 
 @profesor_bp.route("/materiales/<int:material_id>/publicar", methods=["POST"])
 @role_required("PROFESOR")
 def publicar_material(material_id):
-    _, material = profesor_material_or_404(material_id)
+    _, material = profesor_material_propio_or_404(material_id)
 
     material.estado = "PUBLICADO"
     material.fecha_publicacion = material.fecha_publicacion or datetime.utcnow()
@@ -554,7 +739,7 @@ def publicar_material(material_id):
 @profesor_bp.route("/materiales/<int:material_id>/archivar", methods=["POST"])
 @role_required("PROFESOR")
 def archivar_material(material_id):
-    _, material = profesor_material_or_404(material_id)
+    _, material = profesor_material_propio_or_404(material_id)
 
     material.estado = "ARCHIVADO"
 
@@ -570,6 +755,25 @@ def archivar_material(material_id):
 @profesor_bp.route("/uploads/<path:filename>")
 @role_required("PROFESOR")
 def archivo(filename):
+    """
+    Correccion de seguridad (IDOR): antes cualquier profesor
+    autenticado podia leer cualquier archivo de cualquier material
+    con solo conocer/adivinar la ruta. Ahora se verifica que el
+    material dueno del archivo sea propio o este autorizado como
+    colaborador antes de servir el archivo.
+    """
+    profesor = current_profesor()
+
+    material_id_str = filename.split("/", 1)[0]
+
+    if not material_id_str.isdigit():
+        abort(404)
+
+    material = Material.query.get_or_404(int(material_id_str))
+
+    if not material.es_accesible_por_profesor(profesor.id):
+        abort(403)
+
     upload_folder = current_app.config.get("UPLOAD_FOLDER", "uploads/materiales")
 
     return send_from_directory(

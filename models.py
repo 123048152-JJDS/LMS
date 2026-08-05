@@ -415,6 +415,13 @@ class Profesor(db.Model):
         lazy=True
     )
 
+    materiales_autorizados = db.relationship(
+        "MaterialColaborador",
+        back_populates="profesor",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
     def __repr__(self):
         return f"<Profesor {self.numero_empleado}>"
 
@@ -553,15 +560,83 @@ class Clase(db.Model):
         lazy=True
     )
 
-    materiales = db.relationship(
-        "Material",
+    unidades = db.relationship(
+        "Unidad",
         back_populates="clase",
         cascade="all, delete-orphan",
-        lazy=True
+        lazy=True,
+        order_by="Unidad.orden"
     )
 
     def __repr__(self):
         return f"<Clase {self.codigo_clase}>"
+
+
+class Unidad(db.Model):
+    __tablename__ = "unidades"
+
+    id = db.Column(
+        db.BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    clase_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("clases.id"),
+        nullable=False
+    )
+
+    titulo = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    descripcion = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    orden = db.Column(
+        db.Integer,
+        nullable=False,
+        default=1
+    )
+
+    activa = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=True
+    )
+
+    creado_en = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+    actualizado_en = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    clase = db.relationship(
+        "Clase",
+        back_populates="unidades"
+    )
+
+    materiales = db.relationship(
+        "Material",
+        back_populates="unidad",
+        cascade="all, delete-orphan",
+        lazy=True,
+        order_by="Material.creado_en"
+    )
+
+    def __repr__(self):
+        return f"<Unidad {self.titulo}>"
 
 
 class ClaseProfesor(db.Model):
@@ -668,9 +743,9 @@ class Material(db.Model):
         autoincrement=True
     )
 
-    clase_id = db.Column(
+    unidad_id = db.Column(
         db.BigInteger,
-        db.ForeignKey("clases.id"),
+        db.ForeignKey("unidades.id"),
         nullable=False
     )
 
@@ -767,8 +842,8 @@ class Material(db.Model):
         onupdate=datetime.utcnow
     )
 
-    clase = db.relationship(
-        "Clase",
+    unidad = db.relationship(
+        "Unidad",
         back_populates="materiales"
     )
 
@@ -776,6 +851,33 @@ class Material(db.Model):
         "Profesor",
         back_populates="materiales"
     )
+
+    colaboradores = db.relationship(
+        "MaterialColaborador",
+        back_populates="material",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+
+    @property
+    def clase(self):
+        """Atajo de conveniencia: la clase a la que pertenece este
+        material, a través de su unidad."""
+        return self.unidad.clase if self.unidad else None
+
+    def es_accesible_por_profesor(self, profesor_id):
+        """
+        Un profesor puede acceder a este material si:
+          - es el dueño (lo creó), o
+          - el dueño lo autorizó explícitamente (colaborador).
+        """
+        if self.profesor_id == profesor_id:
+            return True
+
+        return any(
+            colaborador.profesor_id == profesor_id
+            for colaborador in self.colaboradores
+        )
 
     alumnos_asignados = db.relationship(
         "MaterialAlumno",
@@ -836,6 +938,46 @@ class MaterialAlumno(db.Model):
 
     def __repr__(self):
         return f"<MaterialAlumno material={self.material_id} alumno={self.alumno_id}>"
+
+
+class MaterialColaborador(db.Model):
+    """
+    Autorización explícita del profesor dueño de un material para que
+    OTRO profesor pueda ver y usar ese material (independientemente de
+    la clase en la que lo haya creado originalmente).
+    """
+    __tablename__ = "material_colaboradores"
+
+    material_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("materiales.id"),
+        primary_key=True
+    )
+
+    profesor_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("profesores.id"),
+        primary_key=True
+    )
+
+    autorizado_en = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+    material = db.relationship(
+        "Material",
+        back_populates="colaboradores"
+    )
+
+    profesor = db.relationship(
+        "Profesor",
+        back_populates="materiales_autorizados"
+    )
+
+    def __repr__(self):
+        return f"<MaterialColaborador material={self.material_id} profesor={self.profesor_id}>"
 
 
 class RecursoMaterial(db.Model):

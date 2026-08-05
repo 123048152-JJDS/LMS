@@ -77,6 +77,7 @@
                                     <td>
                                         <div class="d-flex gap-2 flex-wrap">
                                             <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.formulario_clase', clase_id=clase.id) }}"><i class="bi bi-pencil-square"></i></a>
+                                            <a class="btn btn-sm btn-outline-dark" href="{{ url_for('admin.unidades_clase', clase_id=clase.id) }}" title="Ver unidades y materiales"><i class="bi bi-collection"></i></a>
                                             <a class="btn btn-sm btn-outline-success" href="{{ url_for('admin.asignar_profesor', clase_id=clase.id) }}"><i class="bi bi-person-workspace"></i></a>
                                             <a class="btn btn-sm btn-outline-info" href="{{ url_for('admin.asignar_alumnos', clase_id=clase.id) }}"><i class="bi bi-people"></i></a>
                                         </div>

@@ -228,6 +228,28 @@ CREATE TABLE IF NOT EXISTS clase_profesores (
 
 CREATE INDEX IF NOT EXISTS idx_clase_profesores_profesor ON clase_profesores (profesor_id);
 
+CREATE TABLE IF NOT EXISTS unidades (
+    id              BIGSERIAL PRIMARY KEY,
+    clase_id        BIGINT NOT NULL REFERENCES clases(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    titulo          VARCHAR(200) NOT NULL,
+    descripcion     TEXT,
+    orden           INTEGER NOT NULL DEFAULT 1,
+    activa          BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en       TIMESTAMP NOT NULL DEFAULT NOW(),
+    actualizado_en  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_unidades_clase ON unidades (clase_id);
+CREATE INDEX IF NOT EXISTS idx_unidades_orden ON unidades (clase_id, orden);
+
+DO $$ BEGIN
+    CREATE TRIGGER trg_unidades_actualizado_en
+        BEFORE UPDATE ON unidades
+        FOR EACH ROW EXECUTE FUNCTION set_actualizado_en();
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
 CREATE TABLE IF NOT EXISTS inscripciones (
     id              BIGSERIAL PRIMARY KEY,
     clase_id        BIGINT NOT NULL REFERENCES clases(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -251,7 +273,7 @@ END $$;
 
 CREATE TABLE IF NOT EXISTS materiales (
     id                          BIGSERIAL PRIMARY KEY,
-    clase_id                    BIGINT NOT NULL REFERENCES clases(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    unidad_id                   BIGINT NOT NULL REFERENCES unidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     profesor_id                 BIGINT NOT NULL REFERENCES profesores(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     titulo                      VARCHAR(200) NOT NULL,
     descripcion_corta           VARCHAR(500),
@@ -271,7 +293,7 @@ CREATE TABLE IF NOT EXISTS materiales (
     actualizado_en              TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_materiales_clase ON materiales (clase_id);
+CREATE INDEX IF NOT EXISTS idx_materiales_unidad ON materiales (unidad_id);
 CREATE INDEX IF NOT EXISTS idx_materiales_profesor ON materiales (profesor_id);
 CREATE INDEX IF NOT EXISTS idx_materiales_estado ON materiales (estado);
 CREATE INDEX IF NOT EXISTS idx_materiales_publicacion ON materiales (fecha_publicacion);
@@ -293,6 +315,15 @@ CREATE TABLE IF NOT EXISTS material_alumnos (
 );
 
 CREATE INDEX IF NOT EXISTS idx_material_alumnos_alumno ON material_alumnos (alumno_id);
+
+CREATE TABLE IF NOT EXISTS material_colaboradores (
+    material_id     BIGINT NOT NULL REFERENCES materiales(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    profesor_id     BIGINT NOT NULL REFERENCES profesores(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    autorizado_en   TIMESTAMP NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (material_id, profesor_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_material_colaboradores_profesor ON material_colaboradores (profesor_id);
 
 CREATE TABLE IF NOT EXISTS recursos_material (
     id                  BIGSERIAL PRIMARY KEY,

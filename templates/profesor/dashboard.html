@@ -1,164 +1,335 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Profesor | LMS UPQ</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
     <style>
-        body{background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#172033}
-        .layout{display:flex;min-height:100vh}
-        .sidebar{width:280px;background:linear-gradient(180deg,#063c78,#0b5cad);color:white;position:fixed;top:0;bottom:0;left:0;padding:24px 18px;display:flex;flex-direction:column}
-        .brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}
-        .brand-icon{width:48px;height:48px;background:white;color:#0b5cad;border-radius:14px;display:grid;place-items:center;font-weight:800}
-        .nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}
-        .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}
-        .sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}.logout{color:white;text-decoration:none;font-weight:700}
-        .main{margin-left:280px;width:calc(100% - 280px)}
-        .topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}
-        .content{padding:30px}
-        .stat-card{border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);position:relative;overflow:hidden}
-        .stat-card:after{content:"";position:absolute;width:96px;height:96px;right:-28px;top:-28px;border-radius:50%;background:#eaf1f9}
-        .stat-number{font-size:38px;font-weight:800;color:#0757a6}
-        .card-box{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
-        .btn-primary{background:#0b5cad;border-color:#0b5cad}.btn-primary:hover{background:#063c78;border-color:#063c78}
-        .table th{background:#f8fafc}.badge{border-radius:999px}
-        .flash-message{border-radius:14px;padding:12px 16px;margin-bottom:12px;font-weight:700}
-        .success{background:#dcfce7;color:#166534}.danger,.error{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#92400e}
-        @media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}}
+      body {
+        background: #f4f7fb;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #172033;
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #063c78, #0b5cad);
+        color: white;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        padding: 24px 18px;
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+      .brand-icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        color: #0b5cad;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+      }
+      .nav-link {
+        color: white;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        background: rgba(255, 255, 255, 0.16);
+        color: white;
+      }
+      .sidebar-footer {
+        margin-top: auto;
+        font-size: 14px;
+        color: #d9ecff;
+      }
+      .logout {
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .main {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+      }
+      .topbar {
+        height: 72px;
+        background: white;
+        border-bottom: 1px solid #dce6f3;
+        display: flex;
+        align-items: center;
+        padding: 0 28px;
+      }
+      .content {
+        padding: 30px;
+      }
+      .stat-card {
+        border: 0;
+        border-radius: 22px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-card:after {
+        content: "";
+        position: absolute;
+        width: 96px;
+        height: 96px;
+        right: -28px;
+        top: -28px;
+        border-radius: 50%;
+        background: #eaf1f9;
+      }
+      .stat-number {
+        font-size: 38px;
+        font-weight: 800;
+        color: #0757a6;
+      }
+      .card-box {
+        background: white;
+        border: 0;
+        border-radius: 22px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+      .btn-primary {
+        background: #0b5cad;
+        border-color: #0b5cad;
+      }
+      .btn-primary:hover {
+        background: #063c78;
+        border-color: #063c78;
+      }
+      .table th {
+        background: #f8fafc;
+      }
+      .badge {
+        border-radius: 999px;
+      }
+      .flash-message {
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+      .success {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .danger,
+      .error {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      @media (max-width: 900px) {
+        .sidebar {
+          position: relative;
+          width: 100%;
+        }
+        .layout {
+          display: block;
+        }
+        .main {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
-<div class="layout">
-    <aside class="sidebar">
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
         <div class="brand">
-            <div class="brand-icon"><i class="bi bi-person-workspace"></i></div>
-            <div><strong>LMS UPQ</strong><br><small>Profesor</small></div>
+          <div class="brand-icon"><i class="bi bi-person-workspace"></i></div>
+          <div><strong>LMS UPQ</strong><br /><small>Profesor</small></div>
         </div>
 
         <nav>
-            <a class="nav-link active" href="{{ url_for('profesor.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-            <a class="nav-link" href="{{ url_for('profesor.clases') }}"><i class="bi bi-easel2 me-2"></i>Mis clases</a>
-            <a class="nav-link" href="{{ url_for('profesor.materiales') }}"><i class="bi bi-journal-richtext me-2"></i>Materiales</a>
-            <a class="nav-link" href="{{ url_for('profesor.crear_material') }}"><i class="bi bi-plus-circle me-2"></i>Crear material</a>
+          <a class="nav-link active" href="{{ url_for('profesor.dashboard') }}"
+            ><i class="bi bi-speedometer2 me-2"></i>Dashboard</a
+          >
+          <a class="nav-link" href="{{ url_for('profesor.clases') }}"
+            ><i class="bi bi-easel2 me-2"></i>Mis clases</a
+          >
+          <a class="nav-link" href="{{ url_for('profesor.materiales') }}"
+            ><i class="bi bi-journal-richtext me-2"></i>Materiales</a
+          >
+          <a
+            class="nav-link"
+            href="{{ url_for('profesor.materiales_compartidos') }}"
+          >
+            <i class="bi bi-people me-2"></i>Compartidos conmigo
+          </a>
         </nav>
 
         <div class="sidebar-footer">
-            <p class="mb-1">{{ current_user.nombre_completo }}</p>
-            <small>{{ current_user.correo }}</small><br>
-            <a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}">
-                <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión
-            </a>
+          <p class="mb-1">{{ current_user.nombre_completo }}</p>
+          <small>{{ current_user.correo }}</small><br />
+          <a
+            class="logout mt-3 d-inline-block"
+            href="{{ url_for('auth.logout') }}"
+          >
+            <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión
+          </a>
         </div>
-    </aside>
+      </aside>
 
-    <main class="main">
+      <main class="main">
         <header class="topbar">
-            <div>
-                <strong>Panel del profesor</strong><br>
-                <small class="text-muted">Plataforma LMS UPQ</small>
-            </div>
+          <div>
+            <strong>Panel del profesor</strong><br />
+            <small class="text-muted">Plataforma LMS UPQ</small>
+          </div>
         </header>
 
         <section class="content">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endwith %}
+          {% with messages = get_flashed_messages(with_categories=true) %} {%
+          for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %} {% endwith %}
 
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                    <h1 class="fw-bold mb-1">Panel del profesor</h1>
-                    <p class="text-muted mb-0">Resumen de clases asignadas y materiales educativos.</p>
-                </div>
-
-                <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('profesor.crear_material') }}">
-                    <i class="bi bi-plus-circle me-1"></i>Crear material
-                </a>
+          <div
+            class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+          >
+            <div>
+              <h1 class="fw-bold mb-1">Panel del profesor</h1>
+              <p class="text-muted mb-0">
+                Resumen de clases asignadas y materiales educativos.
+              </p>
             </div>
 
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="card stat-card p-4">
-                        <i class="bi bi-easel2 fs-3 text-primary"></i>
-                        <div class="stat-number">{{ clases|length }}</div>
-                        <strong>Clases asignadas</strong>
-                    </div>
-                </div>
+            <a
+              class="btn btn-primary rounded-pill px-4"
+              href="{{ url_for('profesor.clases') }}"
+            >
+              <i class="bi bi-easel2 me-1"></i>Ir a mis clases
+            </a>
+          </div>
 
-                <div class="col-md-4">
-                    <div class="card stat-card p-4">
-                        <i class="bi bi-journal-richtext fs-3 text-primary"></i>
-                        <div class="stat-number">{{ materiales }}</div>
-                        <strong>Materiales creados</strong>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card stat-card p-4">
-                        <i class="bi bi-cloud-check fs-3 text-primary"></i>
-                        <div class="stat-number">{{ publicados }}</div>
-                        <strong>Materiales publicados</strong>
-                    </div>
-                </div>
+          <div class="row g-4 mb-4">
+            <div class="col-md-3">
+              <div class="card stat-card p-4">
+                <i class="bi bi-easel2 fs-3 text-primary"></i>
+                <div class="stat-number">{{ clases|length }}</div>
+                <strong>Clases asignadas</strong>
+              </div>
             </div>
 
-            <div class="card card-box p-4">
-                <h4 class="fw-bold mb-3">Mis clases</h4>
-
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Materia</th>
-                                <th>Periodo</th>
-                                <th>Grupo</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for clase in clases %}
-                                <tr>
-                                    <td><strong class="text-primary">{{ clase.codigo_clase }}</strong></td>
-                                    <td>{{ clase.materia.nombre }}</td>
-                                    <td>{{ clase.periodo.nombre }}</td>
-                                    <td>{{ clase.nombre_grupo }}</td>
-                                    <td>
-                                        {% if clase.activa %}
-                                            <span class="badge text-bg-success">Activa</span>
-                                        {% else %}
-                                            <span class="badge text-bg-danger">Inactiva</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('profesor.detalle_clase', clase_id=clase.id) }}">
-                                            <i class="bi bi-eye"></i> Ver
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No tienes clases asignadas.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="col-md-3">
+              <div class="card stat-card p-4">
+                <i class="bi bi-journal-richtext fs-3 text-primary"></i>
+                <div class="stat-number">{{ materiales }}</div>
+                <strong>Materiales creados</strong>
+              </div>
             </div>
+
+            <div class="col-md-3">
+              <div class="card stat-card p-4">
+                <i class="bi bi-cloud-check fs-3 text-primary"></i>
+                <div class="stat-number">{{ publicados }}</div>
+                <strong>Materiales publicados</strong>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="card stat-card p-4">
+                <i class="bi bi-people fs-3 text-primary"></i>
+                <div class="stat-number">{{ compartidos_conmigo }}</div>
+                <strong>Compartidos conmigo</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-box p-4">
+            <h4 class="fw-bold mb-3">Mis clases</h4>
+
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Materia</th>
+                    <th>Periodo</th>
+                    <th>Grupo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for clase in clases %}
+                  <tr>
+                    <td>
+                      <strong class="text-primary"
+                        >{{ clase.codigo_clase }}</strong
+                      >
+                    </td>
+                    <td>{{ clase.materia.nombre }}</td>
+                    <td>{{ clase.periodo.nombre }}</td>
+                    <td>{{ clase.nombre_grupo }}</td>
+                    <td>
+                      {% if clase.activa %}
+                      <span class="badge text-bg-success">Activa</span>
+                      {% else %}
+                      <span class="badge text-bg-danger">Inactiva</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a
+                        class="btn btn-sm btn-outline-primary"
+                        href="{{ url_for('profesor.detalle_clase', clase_id=clase.id) }}"
+                      >
+                        <i class="bi bi-eye"></i> Ver
+                      </a>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                      No tienes clases asignadas.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
-    </main>
-</div>
+      </main>
+    </div>
 
-<script>
-    document.querySelectorAll(".stat-number").forEach((item) => {
+    <script>
+      document.querySelectorAll(".stat-number").forEach((item) => {
         const finalValue = Number(item.textContent.trim());
         if (Number.isNaN(finalValue)) return;
 
@@ -166,14 +337,14 @@
         const step = Math.max(1, Math.ceil(finalValue / 25));
 
         const timer = setInterval(() => {
-            value += step;
-            if (value >= finalValue) {
-                value = finalValue;
-                clearInterval(timer);
-            }
-            item.textContent = value;
+          value += step;
+          if (value >= finalValue) {
+            value = finalValue;
+            clearInterval(timer);
+          }
+          item.textContent = value;
         }, 18);
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
