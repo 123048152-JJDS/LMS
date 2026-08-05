@@ -16,6 +16,8 @@
         .nav-link{color:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-weight:600}.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.16);color:white}
         .sidebar-footer{margin-top:auto;font-size:14px;color:#d9ecff}.logout{color:white;text-decoration:none;font-weight:700}
         .main{margin-left:280px;width:calc(100% - 280px)}.topbar{height:72px;background:white;border-bottom:1px solid #dce6f3;display:flex;align-items:center;padding:0 28px}.content{padding:30px}
+        .context-banner{background:#eef6ff;border:1px solid #cfe6fb;border-radius:16px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:center;gap:14px}
+        .context-banner i{font-size:24px;color:#0b5cad}
         .form-card{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);padding:28px}
         .form-control,.form-select{border-radius:12px;padding:12px}.btn-primary{background:#0b5cad;border-color:#0b5cad}.btn-primary:hover{background:#063c78;border-color:#063c78}
         .usk-section{border-left:5px solid #0b5cad;background:#f8fafc;border-radius:16px;padding:18px}
@@ -34,7 +36,7 @@
             <a class="nav-link" href="{{ url_for('profesor.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
             <a class="nav-link" href="{{ url_for('profesor.clases') }}"><i class="bi bi-easel2 me-2"></i>Mis clases</a>
             <a class="nav-link active" href="{{ url_for('profesor.materiales') }}"><i class="bi bi-journal-richtext me-2"></i>Materiales</a>
-            <a class="nav-link" href="{{ url_for('profesor.crear_material') }}"><i class="bi bi-plus-circle me-2"></i>Crear material</a>
+            <a class="nav-link" href="{{ url_for('profesor.materiales_compartidos') }}"><i class="bi bi-people me-2"></i>Compartidos conmigo</a>
         </nav>
         <div class="sidebar-footer"><p class="mb-1">{{ current_user.nombre_completo }}</p><small>{{ current_user.correo }}</small><br><a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></div>
     </aside>
@@ -54,23 +56,19 @@
                 <p class="text-muted">Modifica el contenido estructurado con metodología Uskov.</p>
             </div>
 
+            <div class="context-banner">
+                <i class="bi bi-diagram-3"></i>
+                <div>
+                    <strong>{{ unidad.clase.materia.nombre }}</strong> · Grupo {{ unidad.clase.nombre_grupo }} · {{ unidad.clase.periodo.nombre }}<br>
+                    <span class="text-muted">Unidad: {{ unidad.titulo }}</span>
+                </div>
+            </div>
+
             <form method="post" enctype="multipart/form-data" class="form-card">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Clase</label>
-                        <select class="form-select" name="clase_id" required>
-                            <option value="">Selecciona una clase</option>
-                            {% for clase in clases %}
-                                <option value="{{ clase.id }}" {% if material.clase_id == clase.id %}selected{% endif %}>
-                                    {{ clase.materia.nombre }} - {{ clase.nombre_grupo }} - {{ clase.periodo.nombre }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <label class="form-label fw-bold">Título</label>
                         <input class="form-control" name="titulo" value="{{ material.titulo or '' }}" required>
                     </div>

@@ -20,6 +20,8 @@
         .badge{border-radius:999px}.material-section{border-left:5px solid #0b5cad;background:white;border-radius:18px;box-shadow:0 12px 30px rgba(15,23,42,.06);padding:24px;margin-bottom:18px}
         .resource-card{background:white;border:0;border-radius:22px;box-shadow:0 12px 30px rgba(15,23,42,.08);padding:22px}
         .resource-image{max-width:100%;border-radius:16px;margin:12px 0}.resource-media{width:100%;margin:12px 0}
+        .compartido-banner{background:#fff8e6;border:1px solid #ffe3a3;border-radius:16px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+        .compartido-banner i{font-size:22px;color:#b8860b}
         form{display:inline}
         @media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}}
     </style>
@@ -33,7 +35,7 @@
             <a class="nav-link" href="{{ url_for('profesor.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
             <a class="nav-link" href="{{ url_for('profesor.clases') }}"><i class="bi bi-easel2 me-2"></i>Mis clases</a>
             <a class="nav-link active" href="{{ url_for('profesor.materiales') }}"><i class="bi bi-journal-richtext me-2"></i>Materiales</a>
-            <a class="nav-link" href="{{ url_for('profesor.crear_material') }}"><i class="bi bi-plus-circle me-2"></i>Crear material</a>
+            <a class="nav-link" href="{{ url_for('profesor.materiales_compartidos') }}"><i class="bi bi-people me-2"></i>Compartidos conmigo</a>
         </nav>
         <div class="sidebar-footer"><p class="mb-1">{{ current_user.nombre_completo }}</p><small>{{ current_user.correo }}</small><br><a class="logout mt-3 d-inline-block" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></div>
     </aside>
@@ -48,17 +50,32 @@
                 {% endfor %}
             {% endwith %}
 
+            {% if not es_dueno %}
+                <div class="compartido-banner">
+                    <i class="bi bi-people-fill"></i>
+                    <div>
+                        <strong>Material compartido contigo</strong><br>
+                        <span class="text-muted">Creado por {{ material.profesor.usuario.nombre_completo }}. Puedes verlo y usarlo, pero solo el autor puede editarlo, publicarlo o archivarlo.</span>
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
                     <h1 class="fw-bold">{{ material.titulo }}</h1>
-                    <p class="text-muted mb-0">{{ material.clase.materia.nombre }} - Grupo {{ material.clase.nombre_grupo }}</p>
+                    <p class="text-muted mb-0">{{ material.unidad.clase.materia.nombre }} - Grupo {{ material.unidad.clase.nombre_grupo }} · Unidad: {{ material.unidad.titulo }}</p>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
-                    <a class="btn btn-outline-primary rounded-pill px-4" href="{{ url_for('profesor.editar_material', material_id=material.id) }}">
-                        <i class="bi bi-pencil-square me-1"></i>Editar
-                    </a>
-                    <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ url_for('profesor.materiales') }}">Volver</a>
+                    {% if es_dueno %}
+                        <a class="btn btn-outline-primary rounded-pill px-4" href="{{ url_for('profesor.editar_material', material_id=material.id) }}">
+                            <i class="bi bi-pencil-square me-1"></i>Editar
+                        </a>
+                        <a class="btn btn-outline-success rounded-pill px-4" href="{{ url_for('profesor.compartir_material', material_id=material.id) }}">
+                            <i class="bi bi-people me-1"></i>Compartir
+                        </a>
+                    {% endif %}
+                    <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ url_for('profesor.detalle_unidad', unidad_id=material.unidad_id) }}">Volver a la unidad</a>
                 </div>
             </div>
 
@@ -83,23 +100,35 @@
                 {% if material.fecha_publicacion %}
                     <p class="mb-0"><strong>Fecha de publicación:</strong> {{ material.fecha_publicacion.strftime('%d/%m/%Y %H:%M') }}</p>
                 {% endif %}
-            </div>
 
-            <div class="d-flex gap-2 flex-wrap mb-4">
-                {% if material.estado != "PUBLICADO" %}
-                    <form method="post" action="{{ url_for('profesor.publicar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas publicar este material?')">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button class="btn btn-success rounded-pill px-4" type="submit"><i class="bi bi-cloud-check me-1"></i>Publicar</button>
-                    </form>
-                {% endif %}
-
-                {% if material.estado != "ARCHIVADO" %}
-                    <form method="post" action="{{ url_for('profesor.archivar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas archivar este material?')">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button class="btn btn-outline-danger rounded-pill px-4" type="submit"><i class="bi bi-archive me-1"></i>Archivar</button>
-                    </form>
+                {% if es_dueno and material.colaboradores %}
+                    <hr>
+                    <p class="mb-0">
+                        <strong>Compartido con:</strong>
+                        {% for colaborador in material.colaboradores %}
+                            <span class="badge text-bg-info">{{ colaborador.profesor.usuario.nombre_completo }}</span>
+                        {% endfor %}
+                    </p>
                 {% endif %}
             </div>
+
+            {% if es_dueno %}
+                <div class="d-flex gap-2 flex-wrap mb-4">
+                    {% if material.estado != "PUBLICADO" %}
+                        <form method="post" action="{{ url_for('profesor.publicar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas publicar este material?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-success rounded-pill px-4" type="submit"><i class="bi bi-cloud-check me-1"></i>Publicar</button>
+                        </form>
+                    {% endif %}
+
+                    {% if material.estado != "ARCHIVADO" %}
+                        <form method="post" action="{{ url_for('profesor.archivar_material', material_id=material.id) }}" onsubmit="return confirm('¿Deseas archivar este material?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-danger rounded-pill px-4" type="submit"><i class="bi bi-archive me-1"></i>Archivar</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
 
             {% for label, value in [
                 ("Introducción", material.introduccion),

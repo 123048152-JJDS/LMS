@@ -117,6 +117,22 @@
             padding: 30px;
         }
 
+        .context-banner {
+            background: #eef6ff;
+            border: 1px solid #cfe6fb;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .context-banner i {
+            font-size: 24px;
+            color: var(--azul-principal);
+        }
+
         .form-card {
             background: white;
             border: 0;
@@ -271,7 +287,7 @@
                 Dashboard
             </a>
 
-            <a class="nav-link" href="{{ url_for('profesor.clases') }}">
+            <a class="nav-link active" href="{{ url_for('profesor.clases') }}">
                 <i class="bi bi-easel2 me-2"></i>
                 Mis clases
             </a>
@@ -281,9 +297,9 @@
                 Materiales
             </a>
 
-            <a class="nav-link active" href="{{ url_for('profesor.crear_material') }}">
-                <i class="bi bi-plus-circle me-2"></i>
-                Crear material
+            <a class="nav-link" href="{{ url_for('profesor.materiales_compartidos') }}">
+                <i class="bi bi-people me-2"></i>
+                Compartidos conmigo
             </a>
         </nav>
 
@@ -324,32 +340,21 @@
                 </p>
             </div>
 
+            <div class="context-banner">
+                <i class="bi bi-diagram-3"></i>
+                <div>
+                    <strong>{{ unidad.clase.materia.nombre }}</strong> · Grupo {{ unidad.clase.nombre_grupo }} · {{ unidad.clase.periodo.nombre }}<br>
+                    <span class="text-muted">Unidad: {{ unidad.titulo }}</span>
+                </div>
+            </div>
+
             <form method="post" enctype="multipart/form-data" class="form-card" id="materialForm">
 
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="row g-3 mb-4">
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">
-                            Clase
-                        </label>
-
-                        <select class="form-select" name="clase_id" required>
-                            <option value="">Selecciona una clase</option>
-
-                            {% for clase in clases %}
-                                <option
-                                    value="{{ clase.id }}"
-                                    {% if material.clase_id == clase.id or request.args.get('clase_id', type=int) == clase.id %}selected{% endif %}
-                                >
-                                    {{ clase.materia.nombre }} - {{ clase.nombre_grupo }} - {{ clase.periodo.nombre }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <label class="form-label fw-bold">
                             Título
                         </label>
@@ -669,7 +674,7 @@
                         {% endfor %}
                     {% else %}
                         <p class="text-muted">
-                            Selecciona una clase y guarda el borrador para cargar alumnos inscritos.
+                            No hay alumnos inscritos en esta clase todavía.
                         </p>
                     {% endif %}
 
@@ -707,7 +712,7 @@
 
                     <a
                         class="btn btn-outline-secondary rounded-pill px-4"
-                        href="{{ url_for('profesor.materiales') }}"
+                        href="{{ url_for('profesor.detalle_unidad', unidad_id=unidad.id) }}"
                     >
                         Cancelar
                     </a>
