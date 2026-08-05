@@ -26,6 +26,9 @@
         .topbar{height:72px;background:white;border-bottom:1px solid var(--borde);display:flex;align-items:center;padding:0 28px}
         .content{padding:30px}
         .card-box{background:white;border:0;border-radius:22px;box-shadow:var(--sombra)}
+        .unidad-section{margin-bottom:26px}
+        .unidad-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+        .unidad-icon{width:42px;height:42px;border-radius:12px;background:#eef6ff;color:var(--azul);display:grid;place-items:center;font-size:20px;flex-shrink:0}
         .material-card{border:1px solid var(--borde);border-radius:20px;background:white;box-shadow:var(--sombra);padding:22px;height:100%;transition:.25s}
         .material-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(15,23,42,.12)}
         .material-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:#eef6ff;color:var(--azul);font-size:26px;flex-shrink:0}
@@ -130,61 +133,77 @@
             </div>
 
             <div class="card card-box p-4 mb-4">
-                <input id="buscarMaterial" class="form-control rounded-pill" placeholder="Buscar material por título o descripción...">
+                <input id="buscarMaterial" class="form-control rounded-pill" placeholder="Buscar material por título, unidad o descripción...">
             </div>
 
-            <div class="row g-4" id="listaMateriales">
-                {% for material in materiales %}
-                    <div class="col-md-6 col-xl-4 material-item">
-                        <article class="material-card">
-                            <div class="d-flex gap-3 mb-3">
-                                <div class="material-icon">
-                                    <i class="bi bi-journal-richtext"></i>
-                                </div>
-
-                                <div>
-                                    <h5 class="fw-bold mb-1">{{ material.titulo }}</h5>
-
-                                    <p class="text-muted mb-0">
-                                        {% if material.fecha_publicacion %}
-                                            Publicado: {{ material.fecha_publicacion.strftime('%d/%m/%Y') }}
-                                        {% else %}
-                                            Material publicado
-                                        {% endif %}
-                                    </p>
-                                </div>
+            <div id="listaUnidades">
+                {% for unidad, materiales in unidades_materiales %}
+                    <section class="unidad-section unidad-item">
+                        <div class="unidad-header">
+                            <div class="unidad-icon">
+                                <i class="bi bi-collection"></i>
                             </div>
-
-                            {% if material.descripcion_corta %}
-                                <p class="text-muted">{{ material.descripcion_corta }}</p>
-                            {% endif %}
-
-                            <div class="d-flex gap-2 flex-wrap mb-3">
-                                {% if material.permite_descarga %}
-                                    <span class="badge text-bg-success">Descarga permitida</span>
-                                {% else %}
-                                    <span class="badge text-bg-secondary">Solo consulta</span>
+                            <div>
+                                <h4 class="fw-bold mb-0">{{ unidad.titulo }}</h4>
+                                {% if unidad.descripcion %}
+                                    <p class="text-muted mb-0">{{ unidad.descripcion }}</p>
                                 {% endif %}
-
-                                <span class="badge text-bg-primary">
-                                    {{ material.recursos|length }} recursos
-                                </span>
                             </div>
-
-                            <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('alumno.material', material_id=material.id) }}">
-                                <i class="bi bi-eye me-1"></i>Abrir material
-                            </a>
-                        </article>
-                    </div>
-                {% else %}
-                    <div class="col-12">
-                        <div class="card card-box p-5 text-center">
-                            <i class="bi bi-journal-x fs-1 text-primary mb-3"></i>
-                            <h4 class="fw-bold">No hay materiales publicados</h4>
-                            <p class="text-muted mb-0">
-                                Cuando el profesor publique materiales para esta clase, aparecerán aquí.
-                            </p>
                         </div>
+
+                        <div class="row g-4">
+                            {% for material in materiales %}
+                                <div class="col-md-6 col-xl-4 material-item">
+                                    <article class="material-card">
+                                        <div class="d-flex gap-3 mb-3">
+                                            <div class="material-icon">
+                                                <i class="bi bi-journal-richtext"></i>
+                                            </div>
+
+                                            <div>
+                                                <h5 class="fw-bold mb-1">{{ material.titulo }}</h5>
+
+                                                <p class="text-muted mb-0">
+                                                    {% if material.fecha_publicacion %}
+                                                        Publicado: {{ material.fecha_publicacion.strftime('%d/%m/%Y') }}
+                                                    {% else %}
+                                                        Material publicado
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {% if material.descripcion_corta %}
+                                            <p class="text-muted">{{ material.descripcion_corta }}</p>
+                                        {% endif %}
+
+                                        <div class="d-flex gap-2 flex-wrap mb-3">
+                                            {% if material.permite_descarga %}
+                                                <span class="badge text-bg-success">Descarga permitida</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">Solo consulta</span>
+                                            {% endif %}
+
+                                            <span class="badge text-bg-primary">
+                                                {{ material.recursos|length }} recursos
+                                            </span>
+                                        </div>
+
+                                        <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('alumno.material', material_id=material.id) }}">
+                                            <i class="bi bi-eye me-1"></i>Abrir material
+                                        </a>
+                                    </article>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% else %}
+                    <div class="card card-box p-5 text-center">
+                        <i class="bi bi-journal-x fs-1 text-primary mb-3"></i>
+                        <h4 class="fw-bold">No hay materiales publicados</h4>
+                        <p class="text-muted mb-0">
+                            Cuando el profesor publique materiales en alguna unidad de esta clase, aparecerán aquí.
+                        </p>
                     </div>
                 {% endfor %}
             </div>
@@ -198,8 +217,21 @@
     buscarMaterial.addEventListener("input", function () {
         const value = this.value.toLowerCase();
 
-        document.querySelectorAll(".material-item").forEach(function (item) {
-            item.style.display = item.textContent.toLowerCase().includes(value) ? "" : "none";
+        document.querySelectorAll(".unidad-item").forEach(function (seccion) {
+            let algunaVisible = false;
+
+            seccion.querySelectorAll(".material-item").forEach(function (item) {
+                const visible = item.textContent.toLowerCase().includes(value)
+                    || seccion.querySelector(".unidad-header").textContent.toLowerCase().includes(value);
+
+                item.style.display = visible ? "" : "none";
+
+                if (visible) {
+                    algunaVisible = true;
+                }
+            });
+
+            seccion.style.display = algunaVisible ? "" : "none";
         });
     });
 </script>

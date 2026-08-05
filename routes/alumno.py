@@ -179,6 +179,34 @@ def obtener_materiales_disponibles(alumno, clase_id=None):
     ]
 
 
+def obtener_unidades_con_materiales(alumno, clase_id):
+    """
+    Organiza los materiales disponibles de una clase por Unidad,
+    igual que los ve el profesor, para que el alumno tenga la misma
+    estructura de contenidos.
+    """
+    unidades = (
+        Unidad.query
+        .filter_by(clase_id=clase_id, activa=True)
+        .order_by(Unidad.orden)
+        .all()
+    )
+
+    resultado = []
+
+    for unidad in unidades:
+        materiales_unidad = [
+            material
+            for material in unidad.materiales
+            if alumno_can_access(material, alumno)
+        ]
+
+        if materiales_unidad:
+            resultado.append((unidad, materiales_unidad))
+
+    return resultado
+
+
 @alumno_bp.route("/dashboard")
 @role_required("ALUMNO")
 def dashboard():
@@ -234,7 +262,7 @@ def detalle_clase(clase_id):
         .first_or_404()
     )
 
-    materiales = obtener_materiales_disponibles(
+    unidades_materiales = obtener_unidades_con_materiales(
         alumno=alumno,
         clase_id=clase_id
     )
@@ -243,7 +271,7 @@ def detalle_clase(clase_id):
         "alumno/detalle_clase.html",
         alumno=alumno,
         clase=inscripcion.clase,
-        materiales=materiales
+        unidades_materiales=unidades_materiales
     )
 
 
