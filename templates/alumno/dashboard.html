@@ -35,6 +35,8 @@
         .table th{background:#f8fafc}
         .material-card{border:1px solid var(--borde);border-radius:18px;padding:18px;background:#f8fafc;height:100%;transition:.25s}
         .material-card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(15,23,42,.08);background:white}
+        .portada-thumb{width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;background:#f0f4fa;transition:transform .2s ease}
+        .portada-thumb-link:hover .portada-thumb{transform:scale(1.02);box-shadow:0 4px 12px rgba(0,0,0,.15)}
         .flash-message{border-radius:14px;padding:12px 16px;margin-bottom:12px;font-weight:700}
         .success{background:#dcfce7;color:#166534}.danger,.error{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#92400e}
         @media(max-width:900px){.sidebar{position:relative;width:100%}.layout{display:block}.main{margin-left:0;width:100%}.content{padding:20px}}
@@ -176,6 +178,22 @@
                     {% for material in materiales %}
                         <div class="col-md-6 col-xl-4">
                             <article class="material-card">
+                                <!-- Portada en miniatura clickeable -->
+                                {% if material.portada_ruta %}
+                                    <a href="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                       target="_blank"
+                                       class="portada-thumb-link"
+                                       title="Ver portada completa">
+                                        <img src="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                             alt="Portada: {{ material.titulo }}"
+                                             class="portada-thumb">
+                                    </a>
+                                {% else %}
+                                    <div class="portada-thumb d-flex align-items-center justify-content-center text-muted bg-light">
+                                        <i class="bi bi-image fs-1"></i>
+                                    </div>
+                                {% endif %}
+
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="fs-3 text-primary">
                                         <i class="bi bi-journal-richtext"></i>
@@ -192,9 +210,18 @@
                                             <p class="mb-3">{{ material.descripcion_corta }}</p>
                                         {% endif %}
 
-                                        <a class="btn btn-sm btn-primary rounded-pill px-3" href="{{ url_for('alumno.material', material_id=material.id) }}">
-                                            Abrir material
-                                        </a>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            {% if material.portada_ruta %}
+                                                <a href="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-outline-info rounded-pill">
+                                                    <i class="bi bi-image me-1"></i>Portada
+                                                </a>
+                                            {% endif %}
+                                            <a class="btn btn-sm btn-primary rounded-pill px-3" href="{{ url_for('alumno.material', material_id=material.id) }}">
+                                                Abrir material
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </article>

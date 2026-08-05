@@ -207,6 +207,10 @@ def obtener_unidades_con_materiales(alumno, clase_id):
     return resultado
 
 
+# =============================================================================
+# RUTAS DEL ALUMNO
+# =============================================================================
+
 @alumno_bp.route("/dashboard")
 @role_required("ALUMNO")
 def dashboard():
@@ -294,6 +298,31 @@ def material(material_id):
         "alumno/material.html",
         alumno=alumno,
         material=material_obj
+    )
+
+
+@alumno_bp.route("/portada/<int:material_id>")
+@role_required("ALUMNO")
+def ver_portada(material_id):
+    """
+    Sirve la imagen de portada de un material si el alumno tiene acceso.
+    """
+    alumno = current_alumno()
+    material = Material.query.get_or_404(material_id)
+
+    # Verificar que el alumno pueda acceder al material
+    if not alumno_can_access(material, alumno):
+        abort(403)
+
+    # Verificar que el material tenga portada
+    if not material.portada_ruta:
+        abort(404)
+
+    # Servir el archivo desde la carpeta de uploads
+    return send_from_directory(
+        upload_folder(),
+        material.portada_ruta,
+        as_attachment=False
     )
 
 

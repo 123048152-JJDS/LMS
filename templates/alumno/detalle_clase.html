@@ -32,6 +32,8 @@
         .material-card{border:1px solid var(--borde);border-radius:20px;background:white;box-shadow:var(--sombra);padding:22px;height:100%;transition:.25s}
         .material-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(15,23,42,.12)}
         .material-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:#eef6ff;color:var(--azul);font-size:26px;flex-shrink:0}
+        .portada-thumb{width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;background:#f0f4fa;transition:transform .2s ease}
+        .portada-thumb-link:hover .portada-thumb{transform:scale(1.02);box-shadow:0 4px 12px rgba(0,0,0,.15)}
         .btn-primary{background:var(--azul);border-color:var(--azul)}
         .btn-primary:hover{background:var(--azul2);border-color:var(--azul2)}
         .badge{border-radius:999px}
@@ -155,6 +157,22 @@
                             {% for material in materiales %}
                                 <div class="col-md-6 col-xl-4 material-item">
                                     <article class="material-card">
+                                        <!-- Portada en miniatura clickeable -->
+                                        {% if material.portada_ruta %}
+                                            <a href="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                               target="_blank"
+                                               class="portada-thumb-link"
+                                               title="Ver portada completa">
+                                                <img src="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                                     alt="Portada: {{ material.titulo }}"
+                                                     class="portada-thumb">
+                                            </a>
+                                        {% else %}
+                                            <div class="portada-thumb d-flex align-items-center justify-content-center text-muted bg-light">
+                                                <i class="bi bi-image fs-1"></i>
+                                            </div>
+                                        {% endif %}
+
                                         <div class="d-flex gap-3 mb-3">
                                             <div class="material-icon">
                                                 <i class="bi bi-journal-richtext"></i>
@@ -189,9 +207,18 @@
                                             </span>
                                         </div>
 
-                                        <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('alumno.material', material_id=material.id) }}">
-                                            <i class="bi bi-eye me-1"></i>Abrir material
-                                        </a>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            {% if material.portada_ruta %}
+                                                <a href="{{ url_for('alumno.ver_portada', material_id=material.id) }}"
+                                                   target="_blank"
+                                                   class="btn btn-sm btn-outline-info rounded-pill">
+                                                    <i class="bi bi-image me-1"></i>Portada
+                                                </a>
+                                            {% endif %}
+                                            <a class="btn btn-primary rounded-pill px-4" href="{{ url_for('alumno.material', material_id=material.id) }}">
+                                                <i class="bi bi-eye me-1"></i>Abrir material
+                                            </a>
+                                        </div>
                                     </article>
                                 </div>
                             {% endfor %}
